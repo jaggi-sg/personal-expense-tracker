@@ -1,0 +1,156 @@
+export const getRecurringExpensePatterns = (expenses, categories) => {
+  const now = new Date();
+  const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+
+  // Get recurring expenses from last 3 months
+  const recentRecurring = expenses.filter(exp => {
+    const expDate = new Date(exp.date);
+    return exp.type === 'Recurring' && expDate >= threeMonthsAgo;
+  });
+
+  // Group by category and find the most common pattern
+  const patterns = {};
+
+  categories.forEach(category => {
+    const categoryExpenses = recentRecurring.filter(exp => exp.category === category);
+
+    if (categoryExpenses.length > 0) {
+      // Find most common description, paymentType, and paidBy for this category
+      const descriptions = {};
+      const paymentTypes = {};
+      const paidBys = {};
+
+      categoryExpenses.forEach(exp => {
+        descriptions[exp.description] = (descriptions[exp.description] || 0) + 1;
+        if (exp.paymentType) paymentTypes[exp.paymentType] = (paymentTypes[exp.paymentType] || 0) + 1;
+        if (exp.by) paidBys[exp.by] = (paidBys[exp.by] || 0) + 1;
+      });
+
+      // Get most common values
+      const mostCommonDescription = Object.keys(descriptions).reduce((a, b) =>
+        descriptions[a] > descriptions[b] ? a : b
+      );
+      const mostCommonPaymentType = Object.keys(paymentTypes).length > 0
+        ? Object.keys(paymentTypes).reduce((a, b) => paymentTypes[a] > paymentTypes[b] ? a : b)
+        : '';
+      const mostCommonPaidBy = Object.keys(paidBys).length > 0
+        ? Object.keys(paidBys).reduce((a, b) => paidBys[a] > paidBys[b] ? a : b)
+        : '';
+
+      patterns[category] = {
+        category,
+        description: mostCommonDescription,
+        paymentType: mostCommonPaymentType,
+        by: mostCommonPaidBy,
+        lastUsed: new Date(Math.max(...categoryExpenses.map(e => new Date(e.date))))
+      };
+    }
+  });
+
+  return patterns;
+};
+
+export const shouldAutoGenerateExpenses = () => {
+  const today = new Date();
+  const dayOfMonth = today.getDate();
+
+  // Only auto-generate after the 15th of the month
+  return dayOfMonth > 15;
+};
+
+export const hasExpenseForCurrentMonth = (expenses, category) => {
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+
+  return expenses.some(exp => {
+    const expDate = new Date(exp.date);
+    return exp.type === 'Recurring' &&
+           exp.category === category &&
+           expDate.getMonth() === currentMonth &&
+           expDate.getFullYear() === currentYear;
+  });
+};
+
+export const getLastAutoGenerationDate = () => {
+  const stored = localStorage.getItem('last-auto-generation');
+  return stored ? new Date(stored) : null;
+};
+
+export const setLastAutoGenerationDate = (date) => {
+  localStorage.setItem('last-auto-generation', date.toISOString());
+};
+
+export const shouldGenerateForThisMonth = () => {
+  const lastGeneration = getLastAutoGenerationDate();
+  if (!lastGeneration) return true;
+
+  const now = new Date();
+  const lastGenMonth = lastGeneration.getMonth();
+  const lastGenYear = lastGeneration.getFullYear();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+
+  // Generate if we haven't generated for this month yet
+  return !(lastGenMonth === currentMonth && lastGenYear === currentYear);
+};
+
+export const generateAutoRecurringExpenses = (expenses, categories) => {
+  // Check if we should auto-generate
+  if (!shouldAutoGenerateExpenses()) {
+    console.log('Not after 15th yet, skipping auto-generation');
+    return [];
+  }
+
+  if (!shouldGenerateForThisMonth()) {
+    console.log('Already generated for this month');
+    return [];
+  }
+
+  const patterns = getRecurringExpensePatterns(expenses, categories);
+  const newExpenses = [];
+  const now = new Date();
+  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthName = firstDayOfMonth.toLocaleString('default', { month: 'long', timeZone: 'UTC' });
+
+  // For each category, check if we need to auto-generate
+  categories.forEach(category => {
+    // Skip if user already added expense for this category this month
+    if (hasExpenseForCurrentMonth(expenses, category)) {
+      console.log(`Skipping ${category} - already has expense for current month`);
+      return;
+    }
+
+    // Check if we have a pattern for this category
+    const pattern = patterns[category];
+    if (!pattern) {
+      console.log(`Skipping ${category} - no pattern found in last 3 months`);
+      return;
+    }
+
+    // Generate the auto expense
+    const autoExpense = {
+      id: `auto-${Date.now()}-${category}`,
+      date: firstDayOfMonth.toISOString().split('T')[0],
+      month: monthName,
+      category: pattern.category,
+      description: `${pattern.description} (AUTO-GENERATED)`,
+      type: 'Recurring',
+      amount: 0,
+      paymentType: pattern.paymentType,
+      by: pattern.by,
+      status: 'PENDING',
+      notes: 'Auto-generated based on recurring pattern',
+      autoGenerated: true
+    };
+
+    newExpenses.push(autoExpense);
+    console.log(`Generated auto expense for ${category}`);
+  });
+
+  if (newExpenses.length > 0) {
+    setLastAutoGenerationDate(now);
+  }
+
+  return newExpenses;
+};
