@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
-import { Search, Filter, X, Save, Star, StarOff, ChevronDown, ChevronUp, Plus } from 'lucide-react';
-// ==================== COMPONENT 3: QuickFilterChips ====================
+import React from 'react';
+import { X } from 'lucide-react';
+
 const QuickFilterChips = ({ onQuickFilter, activeFilters }) => {
+  const thisMonth = new Date().toLocaleString('default', { month: 'long' });
+
   const quickFilters = [
-    { id: 'paid', label: 'Paid', criteria: { status: 'PAID' }, color: 'green' },
-    { id: 'pending', label: 'Pending', criteria: { status: 'PENDING' }, color: 'orange' },
-    { id: 'overdue', label: 'Overdue', criteria: { status: 'OVERDUE' }, color: 'red' },
-    { id: 'this-month', label: 'This Month', criteria: { quickSearch: new Date().toLocaleString('default', { month: 'long' }) }, color: 'blue' },
-    { id: 'high-amount', label: 'Over $500', criteria: { minAmount: '500' }, color: 'purple' },
-    { id: 'low-amount', label: 'Under $100', criteria: { maxAmount: '100' }, color: 'teal' },
+    { id: 'paid',       label: 'Paid',       criteria: { status: 'PAID' },         color: 'green'  },
+    { id: 'pending',    label: 'Pending',    criteria: { status: 'PENDING' },      color: 'orange' },
+    { id: 'overdue',    label: 'Overdue',    criteria: { status: 'OVERDUE' },      color: 'red'    },
+    { id: 'this-month', label: 'This Month', criteria: { month: thisMonth },        color: 'blue'   },
+    { id: 'high-amount',label: 'Over $500',  criteria: { minAmount: '500' },        color: 'purple' },
+    { id: 'low-amount', label: 'Under $100', criteria: { maxAmount: '100' },        color: 'teal'   },
   ];
 
   return (

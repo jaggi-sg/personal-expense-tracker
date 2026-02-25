@@ -1,16 +1,16 @@
+// src/components/NonRecurringExpenses.jsx
+
 import React, { useState } from 'react';
 import { useExpenseFilters } from '../hooks/useExpenseFilters';
+import { useFilterPresets } from '../hooks/useFilterPresets';
+import { applyAdvancedFilters } from '../utils/advancedFilterUtils';
+import { getFilterDescription } from '../utils/expenseHelpers';
 import ExpenseListControls from './ExpenseListControls';
 import Pagination from './Pagination';
 import ExpenseTable from './ExpenseTable';
 import SummaryCards from './SummaryCards';
-import AddExpenseForm from './AddExpenseForm';
+import AddExpenseSection from './AddExpenseSection';
 import SubTransactionManager from './SubTransactionManager';
-import TemplateManager from './TemplateManager';
-import SaveTemplateModal from './SaveTemplateModal';
-import CloneExpenseButton from './CloneExpenseButton';
-import { months, getFilterDescription } from '../utils/expenseHelpers';
-import { Save } from 'lucide-react';
 
 const NonRecurringExpenses = ({
   expenses,
@@ -42,78 +42,62 @@ const NonRecurringExpenses = ({
   setNewPaymentTypeName,
   handleAddPaymentType,
   availableYears,
-  templates,
-    onLoadTemplate,
-    onDeleteTemplate,
-    onToggleFavorite,
-    onSaveTemplate,
-    showSaveTemplateModal,
-    setShowSaveTemplateModal,
-    onCloneExpense
+  templates = [],
+  onLoadTemplate,
+  onDeleteTemplate,
+  onToggleFavorite,
+  onSaveTemplate,
+  onClearForm,
+  onCloneExpense,
 }) => {
+  const [searchCriteria, setSearchCriteria]       = useState({});
   const [expandedTransactions, setExpandedTransactions] = useState({});
+  const { presets, addPreset, deletePreset, toggleFavorite } = useFilterPresets();
 
   const {
-    filterMonth,
-    setFilterMonth,
-    filterYear,
-    setFilterYear,
-    filterCategory,
-    setFilterCategory,
-    searchQuery,
-    setSearchQuery,
-    sortBy,
-    setSortBy,
-    currentPage,
-    setCurrentPage,
+    dateFrom, setDateFrom,
+    dateTo, setDateTo,
+    selectedCategories, toggleCategory, clearAllFilters,
+    searchQuery, setSearchQuery,
+    sortBy, setSortBy,
+    currentPage, setCurrentPage,
     filteredExpenses,
-    paginatedExpenses,
-    totalPages,
-    startIndex,
-    endIndex
+    filterMonth, filterYear, filterCategory,
   } = useExpenseFilters(expenses, 'Non-Recurring');
 
-  const nonRecurringExpenses = expenses.filter(exp => exp.type === 'Non-Recurring');
-  const nonRecurringTotal = nonRecurringExpenses.filter(exp => exp.status === 'PAID').reduce((sum, exp) => sum + exp.amount, 0);
-  const filteredTotal = filteredExpenses.filter(exp => exp.status === 'PAID').reduce((sum, exp) => sum + exp.amount, 0);
+  // Layer advanced criteria on top
+  const hasAdvanced = Object.entries(searchCriteria).some(([, v]) => v && v !== '' && v !== 'All');
+  const finalFiltered = hasAdvanced ? applyAdvancedFilters(filteredExpenses, searchCriteria) : filteredExpenses;
 
-  const toggleTransactions = (expenseId) => {
-    setExpandedTransactions(prev => ({
-      ...prev,
-      [expenseId]: !prev[expenseId]
-    }));
-  };
+  const itemsPerPage = 10;
+  const totalPages   = Math.ceil(finalFiltered.length / itemsPerPage);
+  const startIndex   = (currentPage - 1) * itemsPerPage;
+  const endIndex     = Math.min(startIndex + itemsPerPage, finalFiltered.length);
+  const paginated    = finalFiltered.slice(startIndex, endIndex);
+
+  const nonRecurringList  = expenses.filter(e => e.type === 'Non-Recurring');
+  const nonRecurringTotal = nonRecurringList.filter(e => e.status === 'PAID').reduce((s, e) => s + e.amount, 0);
+  const filteredTotal     = finalFiltered.filter(e => e.status === 'PAID').reduce((s, e) => s + e.amount, 0);
+
+  const toggleTransactions = (id) =>
+    setExpandedTransactions(prev => ({ ...prev, [id]: !prev[id] }));
+
+  const handleClearAll   = () => { clearAllFilters(); setSearchCriteria({}); };
+  const handleBulkDelete = (ids) => ids.forEach(id => deleteExpense(id));
+  const handleSavePreset = (name, criteria) => { addPreset(name, criteria); alert(`✅ Preset "${name}" saved!`); };
 
   return (
     <>
       <SummaryCards
         totalAmount={nonRecurringTotal}
-        totalEntries={nonRecurringExpenses.length}
+        totalEntries={nonRecurringList.length}
         filteredTotal={filteredTotal}
         filterDescription={getFilterDescription(filterMonth, filterYear, filterCategory)}
         type="Non-Recurring"
+        expenses={expenses}
       />
 
-    <TemplateManager
-      templates={templates}
-      onLoadTemplate={onLoadTemplate}
-      onDeleteTemplate={onDeleteTemplate}
-      onToggleFavorite={onToggleFavorite}
-      type="Non-Recurring"
-    />
-
-    {/* Save Template Button - OUTSIDE AddExpenseForm */}
-          <div className="mb-4">
-            <button
-              onClick={onSaveTemplate}
-              className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-4 py-2 flex items-center gap-2 text-sm font-medium transition-all"
-            >
-              <Save className="w-4 h-4" />
-              Save Current Form as Template
-            </button>
-          </div>
-
-      <AddExpenseForm
+      <AddExpenseSection
         title="Add Non-Recurring Expense"
         formData={formData}
         setFormData={setFormData}
@@ -144,31 +128,50 @@ const NonRecurringExpenses = ({
             totalAmount={formData.amount}
           />
         }
+        templates={templates}
+        onLoadTemplate={onLoadTemplate}
+        onDeleteTemplate={onDeleteTemplate}
+        onToggleFavorite={onToggleFavorite}
+        onSaveTemplate={onSaveTemplate}
+        onClearForm={onClearForm}
+        expenseType="Non-Recurring"
       />
 
       <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-4">Non-Recurring Expense List</h2>
 
         <ExpenseListControls
-          filterMonth={filterMonth}
-          setFilterMonth={setFilterMonth}
-          filterYear={filterYear}
-          setFilterYear={setFilterYear}
-          filterCategory={filterCategory}
-          setFilterCategory={setFilterCategory}
-          availableYears={availableYears}
+          dateFrom={dateFrom}             setDateFrom={setDateFrom}
+          dateTo={dateTo}                 setDateTo={setDateTo}
+          selectedCategories={selectedCategories}
+          toggleCategory={toggleCategory}
+          clearAllFilters={handleClearAll}
           categories={nonRecurringCategories}
-          months={months}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          hasExpenses={nonRecurringExpenses.length > 0}
+          paymentTypes={paymentTypes}
+          searchQuery={searchQuery}       setSearchQuery={setSearchQuery}
+          sortBy={sortBy}                 setSortBy={setSortBy}
+          searchCriteria={searchCriteria} onSearchChange={setSearchCriteria}
+          presets={presets}
+          onLoadPreset={(c) => setSearchCriteria(c)}
+          onSavePreset={handleSavePreset}
+          onDeletePreset={deletePreset}
+          hasExpenses={nonRecurringList.length > 0}
           onDeleteAll={() => deleteAllExpenses('Non-Recurring')}
+          filteredCount={finalFiltered.length}
         />
 
+        {finalFiltered.length === 0 && filteredExpenses.length > 0 && hasAdvanced && (
+          <div className="text-center py-8 bg-orange-500/10 rounded-lg border border-orange-500/30 mb-4">
+            <p className="text-orange-300 font-semibold mb-2">No expenses match your filters</p>
+            <button onClick={handleClearAll} className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold text-sm">
+              Clear Filters
+            </button>
+          </div>
+        )}
+
         <ExpenseTable
-          expenses={paginatedExpenses}
+          expenses={paginated}
+          allFilteredExpenses={finalFiltered}
           editingExpense={editingExpense}
           setEditingExpense={setEditingExpense}
           saveEdit={saveEdit}
@@ -181,6 +184,7 @@ const NonRecurringExpenses = ({
           expandedTransactions={expandedTransactions}
           onToggleExpanded={toggleTransactions}
           onClone={onCloneExpense}
+          onBulkDelete={handleBulkDelete}
         />
 
         <Pagination
@@ -189,13 +193,7 @@ const NonRecurringExpenses = ({
           totalPages={totalPages}
           startIndex={startIndex}
           endIndex={endIndex}
-          totalItems={filteredExpenses.length}
-        />
-        <SaveTemplateModal
-          isOpen={showSaveTemplateModal}
-          onClose={() => setShowSaveTemplateModal(false)}
-          onSave={onSaveTemplate}
-          currentFormData={formData}
+          totalItems={finalFiltered.length}
         />
       </div>
     </>

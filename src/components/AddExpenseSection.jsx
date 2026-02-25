@@ -1,7 +1,7 @@
 // src/components/AddExpenseSection.jsx
 
 import React, { useState } from 'react';
-import { Plus, ChevronDown, ChevronUp, Save, FileText } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp, Save, FileText, X } from 'lucide-react';
 import AddExpenseForm from './AddExpenseForm';
 import TemplateQuickLoad from './TemplateQuickLoad';
 
@@ -32,12 +32,20 @@ const AddExpenseSection = ({
   onDeleteTemplate,
   onToggleFavorite,
   onSaveTemplate,
-  expenseType = 'Recurring'
+  expenseType = 'Recurring',
+  // Clear form
+  onClearForm,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Check if form has any data
+  // Check if form has any user-entered data
   const hasFormData = formData.category || formData.description || formData.amount;
+
+  const handleClear = () => {
+    if (onClearForm) {
+      onClearForm();
+    }
+  };
 
   return (
     <div className="mb-6">
@@ -71,13 +79,24 @@ const AddExpenseSection = ({
       {/* Expandable Content */}
       {isExpanded && (
         <div className="mt-3 bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 space-y-4">
-          {/* Quick Template Actions */}
+
+          {/* Template Actions Row */}
           <div className="flex items-center justify-between pb-4 border-b border-white/20">
             <div className="flex items-center gap-2">
               <FileText className="w-5 h-5 text-blue-400" />
               <span className="text-white font-semibold">Template Actions</span>
             </div>
             <div className="flex gap-2">
+              {/* Clear Form Button */}
+              {hasFormData && (
+                <button
+                  onClick={handleClear}
+                  className="bg-white/10 hover:bg-white/20 text-purple-200 hover:text-white border border-white/20 rounded-lg px-4 py-2 flex items-center gap-2 text-sm font-medium transition-all"
+                >
+                  <X className="w-4 h-4" />
+                  Clear Form
+                </button>
+              )}
               <button
                 onClick={onSaveTemplate}
                 className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-4 py-2 flex items-center gap-2 text-sm font-medium transition-all"
@@ -101,7 +120,7 @@ const AddExpenseSection = ({
 
           {/* Main Expense Form */}
           <AddExpenseForm
-            title="" // No title needed here since it's in the toggle button
+            title=""
             formData={formData}
             setFormData={setFormData}
             categories={categories}

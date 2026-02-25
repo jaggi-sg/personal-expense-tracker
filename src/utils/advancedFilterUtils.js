@@ -7,42 +7,33 @@
  * @returns {Array} - Filtered expenses
  */
 export const applyAdvancedFilters = (expenses, criteria) => {
-  console.log('applyAdvancedFilters called with:', {
-    expensesCount: expenses?.length,
-    criteria: criteria
-  });
+  if (!expenses || expenses.length === 0) return [];
+  if (!criteria || Object.keys(criteria).length === 0) return expenses;
 
-  if (!expenses || expenses.length === 0) {
-    console.log('No expenses to filter');
-    return [];
-  }
-
-  if (!criteria || Object.keys(criteria).length === 0) {
-    console.log('No criteria, returning all expenses');
-    return expenses;
-  }
-
-  // Check if there are any actual filter values (not empty, not 'All')
   const hasActiveFilters = Object.entries(criteria).some(([key, value]) => {
     return value && value !== '' && value !== 'All';
   });
 
-  if (!hasActiveFilters) {
-    console.log('No active filters, returning all expenses');
-    return expenses;
-  }
+  if (!hasActiveFilters) return expenses;
 
   const filtered = expenses.filter(expense => {
-    // Quick Search (searches description, category, amount)
+
+    // Quick Search (searches description, category, amount, AND month)
     if (criteria.quickSearch && criteria.quickSearch !== '') {
       const searchTerm = criteria.quickSearch.toLowerCase();
       const matchesDescription = expense.description?.toLowerCase().includes(searchTerm);
       const matchesCategory = expense.category?.toLowerCase().includes(searchTerm);
       const matchesAmount = expense.amount?.toString().includes(searchTerm);
+      const matchesMonth = expense.month?.toLowerCase().includes(searchTerm);
 
-      if (!matchesDescription && !matchesCategory && !matchesAmount) {
+      if (!matchesDescription && !matchesCategory && !matchesAmount && !matchesMonth) {
         return false;
       }
+    }
+
+    // Dedicated Month Filter (used by "This Month" quick filter chip)
+    if (criteria.month && criteria.month !== 'All' && criteria.month !== '') {
+      if (expense.month?.toLowerCase() !== criteria.month.toLowerCase()) return false;
     }
 
     // Category Filter
@@ -63,14 +54,12 @@ export const applyAdvancedFilters = (expenses, criteria) => {
     // Amount Range Filter
     if (criteria.minAmount && criteria.minAmount !== '') {
       const minAmount = parseFloat(criteria.minAmount);
-      if (isNaN(minAmount)) return true; // Skip if invalid
-      if (expense.amount < minAmount) return false;
+      if (!isNaN(minAmount) && expense.amount < minAmount) return false;
     }
 
     if (criteria.maxAmount && criteria.maxAmount !== '') {
       const maxAmount = parseFloat(criteria.maxAmount);
-      if (isNaN(maxAmount)) return true; // Skip if invalid
-      if (expense.amount > maxAmount) return false;
+      if (!isNaN(maxAmount) && expense.amount > maxAmount) return false;
     }
 
     // Date Range Filter
@@ -95,18 +84,14 @@ export const applyAdvancedFilters = (expenses, criteria) => {
     return true;
   });
 
-  console.log('Filtered result:', filtered.length, 'expenses');
   return filtered;
 };
 
 /**
  * Get count of active filters
- * @param {Object} criteria - Search criteria object
- * @returns {number} - Number of active filters
  */
 export const getActiveFilterCount = (criteria) => {
   if (!criteria) return 0;
-
   return Object.keys(criteria).filter(key => {
     const value = criteria[key];
     return value && value !== '' && value !== 'All';
@@ -115,32 +100,20 @@ export const getActiveFilterCount = (criteria) => {
 
 /**
  * Clear all filters
- * @returns {Object} - Empty criteria object
  */
-export const clearAllFilters = () => {
-  return {};
-};
+export const clearAllFilters = () => ({});
 
 /**
  * Get filter summary text
- * @param {Object} criteria - Search criteria object
- * @returns {string} - Human-readable filter summary
  */
 export const getFilterSummary = (criteria) => {
   const activeFilters = [];
 
-  if (criteria.quickSearch) {
-    activeFilters.push(`Search: "${criteria.quickSearch}"`);
-  }
-  if (criteria.category && criteria.category !== 'All') {
-    activeFilters.push(`Category: ${criteria.category}`);
-  }
-  if (criteria.status && criteria.status !== 'All') {
-    activeFilters.push(`Status: ${criteria.status}`);
-  }
-  if (criteria.paymentType && criteria.paymentType !== 'All') {
-    activeFilters.push(`Payment: ${criteria.paymentType}`);
-  }
+  if (criteria.quickSearch) activeFilters.push(`Search: "${criteria.quickSearch}"`);
+  if (criteria.month && criteria.month !== 'All') activeFilters.push(`Month: ${criteria.month}`);
+  if (criteria.category && criteria.category !== 'All') activeFilters.push(`Category: ${criteria.category}`);
+  if (criteria.status && criteria.status !== 'All') activeFilters.push(`Status: ${criteria.status}`);
+  if (criteria.paymentType && criteria.paymentType !== 'All') activeFilters.push(`Payment: ${criteria.paymentType}`);
   if (criteria.minAmount || criteria.maxAmount) {
     const min = criteria.minAmount || '0';
     const max = criteria.maxAmount || '∞';
@@ -151,11 +124,7 @@ export const getFilterSummary = (criteria) => {
     const end = criteria.endDate || 'Any';
     activeFilters.push(`Date: ${start} to ${end}`);
   }
-  if (criteria.paidBy) {
-    activeFilters.push(`Paid By: ${criteria.paidBy}`);
-  }
+  if (criteria.paidBy) activeFilters.push(`Paid By: ${criteria.paidBy}`);
 
-  return activeFilters.length > 0
-    ? activeFilters.join(' • ')
-    : 'No active filters';
+  return activeFilters.length > 0 ? activeFilters.join(' • ') : 'No active filters';
 };

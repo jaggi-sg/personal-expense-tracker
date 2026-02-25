@@ -23,7 +23,10 @@ const TemplateQuickLoad = ({
   });
 
   const favoriteTemplates = sortedTemplates.filter(t => t.isFavorite);
-  const displayTemplates = showAll ? sortedTemplates : favoriteTemplates.slice(0, 3);
+  // AFTER (fixed):
+  const displayTemplates = showAll
+    ? sortedTemplates
+    : (favoriteTemplates.length > 0 ? favoriteTemplates.slice(0, 3) : sortedTemplates.slice(0, 3));
 
   if (filteredTemplates.length === 0) {
     return (

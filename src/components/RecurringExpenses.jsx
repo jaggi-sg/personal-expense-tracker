@@ -1,16 +1,15 @@
-// src/components/RecurringExpenses.jsx - FIXED VERSION
+// src/components/RecurringExpenses.jsx
 
 import React, { useState } from 'react';
 import { useExpenseFilters } from '../hooks/useExpenseFilters';
+import { useFilterPresets } from '../hooks/useFilterPresets';
+import { applyAdvancedFilters } from '../utils/advancedFilterUtils';
+import { getFilterDescription } from '../utils/expenseHelpers';
 import ExpenseListControls from './ExpenseListControls';
 import Pagination from './Pagination';
 import ExpenseTable from './ExpenseTable';
 import SummaryCards from './SummaryCards';
 import AddExpenseSection from './AddExpenseSection';
-import AdvancedFiltersSection from './AdvancedFiltersSection';
-import { useFilterPresets } from '../hooks/useFilterPresets';
-import { applyAdvancedFilters } from '../utils/advancedFilterUtils';
-import { months, getFilterDescription } from '../utils/expenseHelpers';
 
 const RecurringExpenses = ({
   expenses,
@@ -41,114 +40,52 @@ const RecurringExpenses = ({
   onDeleteTemplate,
   onToggleFavorite,
   onSaveTemplate,
-  onCloneExpense
+  onClearForm,
+  onCloneExpense,
 }) => {
-  // ========================================
-  // STATE - Must be at the top
-  // ========================================
   const [searchCriteria, setSearchCriteria] = useState({});
-
-  // Filter presets hook
   const { presets, addPreset, deletePreset, toggleFavorite } = useFilterPresets();
 
-  // ========================================
-  // EXISTING FILTERS (Month/Year/Category/Search)
-  // ========================================
   const {
-    filterMonth,
-    setFilterMonth,
-    filterYear,
-    setFilterYear,
-    filterCategory,
-    setFilterCategory,
-    searchQuery,
-    setSearchQuery,
-    sortBy,
-    setSortBy,
-    currentPage,
-    setCurrentPage,
+    dateFrom, setDateFrom,
+    dateTo, setDateTo,
+    selectedCategories, toggleCategory, clearAllFilters,
+    searchQuery, setSearchQuery,
+    sortBy, setSortBy,
+    currentPage, setCurrentPage,
     filteredExpenses,
-    paginatedExpenses,
-    totalPages,
-    startIndex,
-    endIndex
+    filterMonth, filterYear, filterCategory,
   } = useExpenseFilters(expenses, 'Recurring');
 
-  // ========================================
-  // APPLY ADVANCED FILTERS (if any exist)
-  // ========================================
+  // Layer advanced criteria on top
+  const hasAdvanced = Object.entries(searchCriteria).some(([, v]) => v && v !== '' && v !== 'All');
+  const finalFiltered = hasAdvanced ? applyAdvancedFilters(filteredExpenses, searchCriteria) : filteredExpenses;
 
-  // Check if there are any actual filter values
-  const hasAdvancedFilters = Object.entries(searchCriteria).some(([key, value]) => {
-    return value && value !== '' && value !== 'All';
-  });
+  const itemsPerPage  = 10;
+  const totalPages    = Math.ceil(finalFiltered.length / itemsPerPage);
+  const startIndex    = (currentPage - 1) * itemsPerPage;
+  const endIndex      = Math.min(startIndex + itemsPerPage, finalFiltered.length);
+  const paginated     = finalFiltered.slice(startIndex, endIndex);
 
-  console.log('=== RECURRING EXPENSES DEBUG ===');
-  console.log('Total expenses:', expenses.length);
-  console.log('After useExpenseFilters:', filteredExpenses.length);
-  console.log('Has advanced filters:', hasAdvancedFilters);
-  console.log('Search criteria:', searchCriteria);
+  const recurringList  = expenses.filter(e => e.type === 'Recurring');
+  const recurringTotal = recurringList.filter(e => e.status === 'PAID').reduce((s, e) => s + e.amount, 0);
+  const filteredTotal  = finalFiltered.filter(e => e.status === 'PAID').reduce((s, e) => s + e.amount, 0);
 
-  // Only apply advanced filters if they exist
-  const finalFilteredExpenses = hasAdvancedFilters
-    ? applyAdvancedFilters(filteredExpenses, searchCriteria)
-    : filteredExpenses;
+  const handleClearAll   = () => { clearAllFilters(); setSearchCriteria({}); };
+  const handleBulkDelete = (ids) => ids.forEach(id => deleteExpense(id));
+  const handleSavePreset = (name, criteria) => { addPreset(name, criteria); alert(`✅ Preset "${name}" saved!`); };
 
-  console.log('After advanced filters:', finalFilteredExpenses.length);
-  console.log('================================');
-
-  // ========================================
-  // PAGINATION for final filtered results
-  // ========================================
-  const itemsPerPage = 10;
-  const finalTotalPages = Math.ceil(finalFilteredExpenses.length / itemsPerPage);
-  const finalStartIndex = (currentPage - 1) * itemsPerPage;
-  const finalEndIndex = Math.min(finalStartIndex + itemsPerPage, finalFilteredExpenses.length);
-  const finalPaginatedExpenses = finalFilteredExpenses.slice(finalStartIndex, finalEndIndex);
-
-  // ========================================
-  // TOTALS
-  // ========================================
-  const recurringExpenses = expenses.filter(exp => exp.type === 'Recurring');
-  const recurringTotal = recurringExpenses.filter(exp => exp.status === 'PAID').reduce((sum, exp) => sum + exp.amount, 0);
-  const filteredTotal = finalFilteredExpenses.filter(exp => exp.status === 'PAID').reduce((sum, exp) => sum + exp.amount, 0);
-
-  // ========================================
-  // HANDLERS
-  // ========================================
-  const handleSavePreset = (name, criteria) => {
-    addPreset(name, criteria);
-    alert(`✅ Filter preset "${name}" saved!`);
-  };
-
-  const handleLoadPreset = (criteria) => {
-    setSearchCriteria(criteria);
-  };
-
-  const handleQuickFilter = (criteria) => {
-    setSearchCriteria({ ...searchCriteria, ...criteria });
-  };
-
-  const handleClearAll = () => {
-    setSearchCriteria({});
-  };
-
-  // ========================================
-  // RENDER
-  // ========================================
   return (
     <>
       <SummaryCards
         totalAmount={recurringTotal}
-        totalEntries={recurringExpenses.length}
+        totalEntries={recurringList.length}
         filteredTotal={filteredTotal}
         filterDescription={getFilterDescription(filterMonth, filterYear, filterCategory)}
         type="Recurring"
+        expenses={expenses}
       />
 
-      {/* ========================================
-          ADD EXPENSE SECTION - ALL IN ONE PLACE
-          ======================================== */}
       <AddExpenseSection
         title="Add Recurring Expense"
         formData={formData}
@@ -174,72 +111,45 @@ const RecurringExpenses = ({
         onDeleteTemplate={onDeleteTemplate}
         onToggleFavorite={onToggleFavorite}
         onSaveTemplate={onSaveTemplate}
+        onClearForm={onClearForm}
         expenseType="Recurring"
       />
-
-      {/* ========================================
-          ADVANCED FILTERS SECTION
-          ======================================== */}
-      <AdvancedFiltersSection
-        searchCriteria={searchCriteria}
-        onSearchChange={setSearchCriteria}
-        onClearAll={handleClearAll}
-        categories={categories}
-        paymentTypes={paymentTypes}
-        presets={presets}
-        onLoadPreset={handleLoadPreset}
-        onSavePreset={handleSavePreset}
-        onDeletePreset={deletePreset}
-        onToggleFavorite={toggleFavorite}
-        onQuickFilter={handleQuickFilter}
-      />
-
-      {/* ========================================
-          EXPENSE LIST
-          ======================================== */}
 
       <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-4">Recurring Expense List</h2>
 
-        {/* KEEP ExpenseListControls for basic filters */}
         <ExpenseListControls
-          filterMonth={filterMonth}
-          setFilterMonth={setFilterMonth}
-          filterYear={filterYear}
-          setFilterYear={setFilterYear}
-          filterCategory={filterCategory}
-          setFilterCategory={setFilterCategory}
-          availableYears={availableYears}
+          dateFrom={dateFrom}             setDateFrom={setDateFrom}
+          dateTo={dateTo}                 setDateTo={setDateTo}
+          selectedCategories={selectedCategories}
+          toggleCategory={toggleCategory}
+          clearAllFilters={handleClearAll}
           categories={categories}
-          months={months}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          hasExpenses={recurringExpenses.length > 0}
+          paymentTypes={paymentTypes}
+          searchQuery={searchQuery}       setSearchQuery={setSearchQuery}
+          sortBy={sortBy}                 setSortBy={setSortBy}
+          searchCriteria={searchCriteria} onSearchChange={setSearchCriteria}
+          presets={presets}
+          onLoadPreset={(c) => setSearchCriteria(c)}
+          onSavePreset={handleSavePreset}
+          onDeletePreset={deletePreset}
+          hasExpenses={recurringList.length > 0}
           onDeleteAll={() => deleteAllExpenses('Recurring')}
+          filteredCount={finalFiltered.length}
         />
 
-        {/* Show message if advanced filters filtered everything out */}
-        {finalFilteredExpenses.length === 0 && filteredExpenses.length > 0 && hasAdvancedFilters && (
+        {finalFiltered.length === 0 && filteredExpenses.length > 0 && hasAdvanced && (
           <div className="text-center py-8 bg-orange-500/10 rounded-lg border border-orange-500/30 mb-4">
-            <p className="text-orange-300 font-semibold text-lg mb-2">
-              No expenses match your advanced filters
-            </p>
-            <p className="text-orange-200 text-sm mb-3">
-              {filteredExpenses.length} expenses available before advanced filtering
-            </p>
-            <button
-              onClick={() => setSearchCriteria({})}
-              className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold"
-            >
-              Clear Advanced Filters
+            <p className="text-orange-300 font-semibold mb-2">No expenses match your filters</p>
+            <button onClick={handleClearAll} className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold text-sm">
+              Clear Filters
             </button>
           </div>
         )}
 
         <ExpenseTable
-          expenses={finalPaginatedExpenses}
+          expenses={paginated}
+          allFilteredExpenses={finalFiltered}
           editingExpense={editingExpense}
           setEditingExpense={setEditingExpense}
           saveEdit={saveEdit}
@@ -250,15 +160,16 @@ const RecurringExpenses = ({
           searchQuery={searchQuery}
           hasSubTransactions={false}
           onClone={onCloneExpense}
+          onBulkDelete={handleBulkDelete}
         />
 
         <Pagination
           currentPage={currentPage}
           setCurrentPage={setCurrentPage}
-          totalPages={finalTotalPages}
-          startIndex={finalStartIndex}
-          endIndex={finalEndIndex}
-          totalItems={finalFilteredExpenses.length}
+          totalPages={totalPages}
+          startIndex={startIndex}
+          endIndex={endIndex}
+          totalItems={finalFiltered.length}
         />
       </div>
     </>

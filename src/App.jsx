@@ -13,7 +13,7 @@ import { useExpenseData } from './hooks/useExpenseData';
 import { useExpenseForm } from './hooks/useExpenseForm';
 import { useExpenseActions } from './hooks/useExpenseActions';
 import { useBackupReminder } from './hooks/useBackupReminder';
-import { useAutoRecurringExpenses } from './hooks/useAutoRecurringExpenses'; // Add this
+import { useAutoRecurringExpenses } from './hooks/useAutoRecurringExpenses';
 import { exportToJSON, exportToCSV, importFromJSON, importFromCSV } from './utils/dataExport';
 import { getAvailableYears, getCategorySummary, getYearlyTotal, getPendingAndOverdueExpenses } from './utils/summaryCalculations';
 
@@ -34,26 +34,47 @@ const App = () => {
     savePaymentTypes
   } = useExpenseData();
 
-  // Form management
+  // ─── Separate form state per tab ───────────────────────────────────────────
   const {
-    formData,
-    setFormData,
-    showNewCategoryInput,
-    setShowNewCategoryInput,
-    newCategoryName,
-    setNewCategoryName,
-    showNewPaymentTypeInput,
-    setShowNewPaymentTypeInput,
-    newPaymentTypeName,
-    setNewPaymentTypeName,
-    showSubTransactions,
-    setShowSubTransactions,
-    subTransactions,
-    resetForm,
-    addSubTransaction,
-    updateSubTransaction,
-    removeSubTransaction
-  } = useExpenseForm(activeTab);
+    formData: recurringFormData,
+    setFormData: setRecurringFormData,
+    showNewCategoryInput: recurringShowNewCategoryInput,
+    setShowNewCategoryInput: recurringSetShowNewCategoryInput,
+    newCategoryName: recurringNewCategoryName,
+    setNewCategoryName: recurringSetNewCategoryName,
+    showNewPaymentTypeInput: recurringShowNewPaymentTypeInput,
+    setShowNewPaymentTypeInput: recurringSetShowNewPaymentTypeInput,
+    newPaymentTypeName: recurringNewPaymentTypeName,
+    setNewPaymentTypeName: recurringSetNewPaymentTypeName,
+    showSubTransactions: recurringShowSubTransactions,
+    setShowSubTransactions: recurringSetShowSubTransactions,
+    subTransactions: recurringSubTransactions,
+    resetForm: resetRecurringForm,
+    addSubTransaction: recurringAddSubTransaction,
+    updateSubTransaction: recurringUpdateSubTransaction,
+    removeSubTransaction: recurringRemoveSubTransaction,
+  } = useExpenseForm('recurring');
+
+  const {
+    formData: nonRecurringFormData,
+    setFormData: setNonRecurringFormData,
+    showNewCategoryInput: nonRecurringShowNewCategoryInput,
+    setShowNewCategoryInput: nonRecurringSetShowNewCategoryInput,
+    newCategoryName: nonRecurringNewCategoryName,
+    setNewCategoryName: nonRecurringSetNewCategoryName,
+    showNewPaymentTypeInput: nonRecurringShowNewPaymentTypeInput,
+    setShowNewPaymentTypeInput: nonRecurringSetShowNewPaymentTypeInput,
+    newPaymentTypeName: nonRecurringNewPaymentTypeName,
+    setNewPaymentTypeName: nonRecurringSetNewPaymentTypeName,
+    showSubTransactions: nonRecurringShowSubTransactions,
+    setShowSubTransactions: nonRecurringSetShowSubTransactions,
+    subTransactions: nonRecurringSubTransactions,
+    resetForm: resetNonRecurringForm,
+    addSubTransaction: nonRecurringAddSubTransaction,
+    updateSubTransaction: nonRecurringUpdateSubTransaction,
+    removeSubTransaction: nonRecurringRemoveSubTransaction,
+  } = useExpenseForm('non-recurring');
+  // ───────────────────────────────────────────────────────────────────────────
 
   // Expense actions
   const {
@@ -88,72 +109,75 @@ const App = () => {
     () => exportToCSV(expenses)
   );
 
-// Template management
-const {
-  templates,
-  addTemplate,
-  deleteTemplate,
-  toggleFavorite
-} = useExpenseTemplates();
+  // Template management
+  const {
+    templates,
+    addTemplate,
+    deleteTemplate,
+    toggleFavorite
+  } = useExpenseTemplates();
 
-const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
+  const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
 
-const handleSaveAsTemplate = (templateName) => {
-console.log('handleSaveAsTemplate called with:', templateName);
-  console.log('Type of templateName:', typeof templateName);
-  if (!formData.category || !formData.description) {
-    alert('Please fill in at least category and description before saving template');
-    return;
-  }
+  // Which tab's formData is currently being used for saving a template
+  const activeFormData = activeTab === 'recurring' ? recurringFormData : nonRecurringFormData;
 
-  const templateData = {
-    ...formData,
-    type: activeTab === 'recurring' ? 'Recurring' : 'Non-Recurring'
-  };
-  console.log('Template data to save:', templateData);
-
-  try {
+  const handleSaveAsTemplate = (templateName) => {
+    if (!activeFormData.category || !activeFormData.description) {
+      alert('Please fill in at least category and description before saving template');
+      return;
+    }
+    const templateData = {
+      ...activeFormData,
+      type: activeTab === 'recurring' ? 'Recurring' : 'Non-Recurring'
+    };
+    try {
       addTemplate(templateData, templateName);
       alert(`✅ Template "${templateName}" saved successfully!`);
     } catch (error) {
       console.error('Error saving template:', error);
       alert('Failed to save template. Please try again.');
     }
-};
-
-const handleLoadTemplate = (template) => {
-  setFormData({
-    date: new Date().toISOString().split('T')[0],
-    month: new Date().toLocaleString('default', { month: 'long', timeZone: 'UTC' }),
-    category: template.category,
-    description: template.description,
-    amount: template.amount.toString(),
-    paymentType: template.paymentType,
-    by: template.by,
-    status: template.status,
-    type: template.type
-  });
-};
-
-const handleDeleteTemplate = (templateId) => {
-  const template = templates.find(t => t.id === templateId);
-  if (window.confirm(`Are you sure you want to delete template "${template.name}"?`)) {
-    deleteTemplate(templateId);
-  }
-};
-
-const handleCloneExpense = (expense) => {
-  const clonedExpense = {
-    ...expense,
-    id: Date.now().toString(),
-    date: new Date().toISOString().split('T')[0],
-    month: new Date().toLocaleString('default', { month: 'long', timeZone: 'UTC' })
   };
 
-  saveExpenses([...expenses, clonedExpense]);
-  alert('✅ Expense cloned successfully with today\'s date!');
-};
-  // Auto-generate recurring expenses (Add this)
+  const handleLoadTemplate = (template) => {
+    const loaded = {
+      date: new Date().toISOString().split('T')[0],
+      month: new Date().toLocaleString('default', { month: 'long', timeZone: 'UTC' }),
+      category: template.category,
+      description: template.description,
+      amount: template.amount.toString(),
+      paymentType: template.paymentType,
+      by: template.by,
+      status: template.status,
+      type: template.type
+    };
+    if (activeTab === 'recurring') {
+      setRecurringFormData(loaded);
+    } else {
+      setNonRecurringFormData(loaded);
+    }
+  };
+
+  const handleDeleteTemplate = (templateId) => {
+    const template = templates.find(t => t.id === templateId);
+    if (window.confirm(`Are you sure you want to delete template "${template.name}"?`)) {
+      deleteTemplate(templateId);
+    }
+  };
+
+  const handleCloneExpense = (expense) => {
+    const clonedExpense = {
+      ...expense,
+      id: Date.now().toString(),
+      date: new Date().toISOString().split('T')[0],
+      month: new Date().toLocaleString('default', { month: 'long', timeZone: 'UTC' })
+    };
+    saveExpenses([...expenses, clonedExpense]);
+    alert('✅ Expense cloned successfully with today\'s date!');
+  };
+
+  // Auto-generate recurring expenses
   useAutoRecurringExpenses(expenses, categories, saveExpenses);
 
   if (loading) {
@@ -164,7 +188,6 @@ const handleCloneExpense = (expense) => {
     );
   }
 
-  // Computed values - AFTER loading check
   const availableYears = getAvailableYears(expenses);
   const notifications = getPendingAndOverdueExpenses(expenses);
 
@@ -208,34 +231,33 @@ const handleCloneExpense = (expense) => {
           <RecurringExpenses
             expenses={expenses}
             categories={categories}
-            formData={formData}
-            setFormData={setFormData}
-            handleAddExpense={() => handleAddExpense(formData, subTransactions, resetForm)}
+            formData={recurringFormData}
+            setFormData={setRecurringFormData}
+            handleAddExpense={() => handleAddExpense(recurringFormData, recurringSubTransactions, resetRecurringForm)}
             deleteExpense={deleteExpense}
             deleteAllExpenses={deleteAllExpenses}
             editingExpense={editingExpense}
             setEditingExpense={setEditingExpense}
             saveEdit={saveEdit}
             cancelEdit={cancelEdit}
-            showNewCategoryInput={showNewCategoryInput}
-            setShowNewCategoryInput={setShowNewCategoryInput}
-            newCategoryName={newCategoryName}
-            setNewCategoryName={setNewCategoryName}
-            handleAddCategory={() => handleAddCategory(newCategoryName, setNewCategoryName, setShowNewCategoryInput)}
+            showNewCategoryInput={recurringShowNewCategoryInput}
+            setShowNewCategoryInput={recurringSetShowNewCategoryInput}
+            newCategoryName={recurringNewCategoryName}
+            setNewCategoryName={recurringSetNewCategoryName}
+            handleAddCategory={() => handleAddCategory(recurringNewCategoryName, recurringSetNewCategoryName, recurringSetShowNewCategoryInput)}
             paymentTypes={paymentTypes}
-            showNewPaymentTypeInput={showNewPaymentTypeInput}
-            setShowNewPaymentTypeInput={setShowNewPaymentTypeInput}
-            newPaymentTypeName={newPaymentTypeName}
-            setNewPaymentTypeName={setNewPaymentTypeName}
-            handleAddPaymentType={() => handleAddPaymentType(newPaymentTypeName, setNewPaymentTypeName, setShowNewPaymentTypeInput)}
+            showNewPaymentTypeInput={recurringShowNewPaymentTypeInput}
+            setShowNewPaymentTypeInput={recurringSetShowNewPaymentTypeInput}
+            newPaymentTypeName={recurringNewPaymentTypeName}
+            setNewPaymentTypeName={recurringSetNewPaymentTypeName}
+            handleAddPaymentType={() => handleAddPaymentType(recurringNewPaymentTypeName, recurringSetNewPaymentTypeName, recurringSetShowNewPaymentTypeInput)}
             availableYears={availableYears}
             templates={templates}
             onLoadTemplate={handleLoadTemplate}
             onDeleteTemplate={handleDeleteTemplate}
             onToggleFavorite={toggleFavorite}
-            onSaveTemplate={()=> setShowSaveTemplateModal(true)}
-            showSaveTemplateModal={showSaveTemplateModal}
-            setShowSaveTemplateModal={setShowSaveTemplateModal}
+            onSaveTemplate={() => setShowSaveTemplateModal(true)}
+            onClearForm={() => resetRecurringForm('Recurring')}
             onCloneExpense={handleCloneExpense}
           />
         )}
@@ -244,49 +266,48 @@ const handleCloneExpense = (expense) => {
           <NonRecurringExpenses
             expenses={expenses}
             nonRecurringCategories={nonRecurringCategories}
-            formData={formData}
-            setFormData={setFormData}
-            handleAddExpense={() => handleAddExpense(formData, subTransactions, resetForm)}
+            formData={nonRecurringFormData}
+            setFormData={setNonRecurringFormData}
+            handleAddExpense={() => handleAddExpense(nonRecurringFormData, nonRecurringSubTransactions, resetNonRecurringForm)}
             deleteExpense={deleteExpense}
             deleteAllExpenses={deleteAllExpenses}
-            showNewCategoryInput={showNewCategoryInput}
-            setShowNewCategoryInput={setShowNewCategoryInput}
-            newCategoryName={newCategoryName}
-            setNewCategoryName={setNewCategoryName}
-            handleAddCategory={() => handleAddCategory(newCategoryName, setNewCategoryName, setShowNewCategoryInput)}
-            showSubTransactions={showSubTransactions}
-            setShowSubTransactions={setShowSubTransactions}
-            subTransactions={subTransactions}
-            addSubTransaction={addSubTransaction}
-            updateSubTransaction={updateSubTransaction}
-            removeSubTransaction={removeSubTransaction}
+            showNewCategoryInput={nonRecurringShowNewCategoryInput}
+            setShowNewCategoryInput={nonRecurringSetShowNewCategoryInput}
+            newCategoryName={nonRecurringNewCategoryName}
+            setNewCategoryName={nonRecurringSetNewCategoryName}
+            handleAddCategory={() => handleAddCategory(nonRecurringNewCategoryName, nonRecurringSetNewCategoryName, nonRecurringSetShowNewCategoryInput)}
+            showSubTransactions={nonRecurringShowSubTransactions}
+            setShowSubTransactions={nonRecurringSetShowSubTransactions}
+            subTransactions={nonRecurringSubTransactions}
+            addSubTransaction={nonRecurringAddSubTransaction}
+            updateSubTransaction={nonRecurringUpdateSubTransaction}
+            removeSubTransaction={nonRecurringRemoveSubTransaction}
             editingExpense={editingExpense}
             setEditingExpense={setEditingExpense}
             saveEdit={saveEdit}
             cancelEdit={cancelEdit}
             paymentTypes={paymentTypes}
-            showNewPaymentTypeInput={showNewPaymentTypeInput}
-            setShowNewPaymentTypeInput={setShowNewPaymentTypeInput}
-            newPaymentTypeName={newPaymentTypeName}
-            setNewPaymentTypeName={setNewPaymentTypeName}
-            handleAddPaymentType={() => handleAddPaymentType(newPaymentTypeName, setNewPaymentTypeName, setShowNewPaymentTypeInput)}
+            showNewPaymentTypeInput={nonRecurringShowNewPaymentTypeInput}
+            setShowNewPaymentTypeInput={nonRecurringSetShowNewPaymentTypeInput}
+            newPaymentTypeName={nonRecurringNewPaymentTypeName}
+            setNewPaymentTypeName={nonRecurringSetNewPaymentTypeName}
+            handleAddPaymentType={() => handleAddPaymentType(nonRecurringNewPaymentTypeName, nonRecurringSetNewPaymentTypeName, nonRecurringSetShowNewPaymentTypeInput)}
             availableYears={availableYears}
             templates={templates}
             onLoadTemplate={handleLoadTemplate}
             onDeleteTemplate={handleDeleteTemplate}
             onToggleFavorite={toggleFavorite}
-            onSaveTemplate={()=> setShowSaveTemplateModal(true)}
-            showSaveTemplateModal={showSaveTemplateModal}
-            setShowSaveTemplateModal={setShowSaveTemplateModal}
+            onSaveTemplate={() => setShowSaveTemplateModal(true)}
+            onClearForm={() => resetNonRecurringForm('Non-Recurring')}
             onCloneExpense={handleCloneExpense}
           />
         )}
 
         {activeTab === 'analytics' && (
           <AdvancedAnalytics
-            expenses={expenses}  // ← Must be here
-            categories={categories}  // ← Must be here
-            nonRecurringCategories={nonRecurringCategories}  // ← Must be here
+            expenses={expenses}
+            categories={categories}
+            nonRecurringCategories={nonRecurringCategories}
           />
         )}
 
@@ -302,8 +323,8 @@ const handleCloneExpense = (expense) => {
         <SaveTemplateModal
           isOpen={showSaveTemplateModal}
           onClose={() => setShowSaveTemplateModal(false)}
-          onSave={handleSaveAsTemplate}  // ← Should pass handleSaveAsTemplate, not something else
-          currentFormData={formData}
+          onSave={handleSaveAsTemplate}
+          currentFormData={activeFormData}
         />
       </div>
     </div>
