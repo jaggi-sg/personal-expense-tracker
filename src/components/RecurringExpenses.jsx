@@ -42,6 +42,8 @@ const RecurringExpenses = ({
   onSaveTemplate,
   onClearForm,
   onCloneExpense,
+  onBulkEdit,
+  onSkipMonth,
 }) => {
   const [searchCriteria, setSearchCriteria] = useState({});
   const { presets, addPreset, deletePreset, toggleFavorite } = useFilterPresets();
@@ -161,6 +163,8 @@ const RecurringExpenses = ({
           hasSubTransactions={false}
           onClone={onCloneExpense}
           onBulkDelete={handleBulkDelete}
+          onBulkEdit={onBulkEdit}
+          onSkipMonth={onSkipMonth}
         />
 
         <Pagination

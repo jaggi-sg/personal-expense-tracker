@@ -1,7 +1,7 @@
 // src/components/Header.jsx
 
 import React, { useEffect, useRef } from 'react';
-import { Wallet } from 'lucide-react';
+import { Wallet, Sun, Moon } from 'lucide-react';
 
 // Animated canvas — subtle drifting particles for depth
 const ParticleCanvas = () => {
@@ -81,7 +81,7 @@ const ParticleCanvas = () => {
   );
 };
 
-const Header = () => (
+const Header = ({ isDark, toggleTheme }) => (
   <div
     className="relative overflow-hidden rounded-2xl mb-6"
     style={{
@@ -89,6 +89,19 @@ const Header = () => (
       boxShadow: '0 0 0 1px rgba(139,92,246,0.15), 0 32px 64px -16px rgba(0,0,0,0.7), 0 0 80px -20px rgba(109,40,217,0.3)',
     }}
   >
+    {/* Theme toggle — top right */}
+    {toggleTheme && (
+      <button
+        onClick={toggleTheme}
+        className="absolute top-4 right-4 z-20 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg p-2 transition-all"
+        title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      >
+        {isDark
+          ? <Sun  className="w-4 h-4 text-yellow-300" />
+          : <Moon className="w-4 h-4 text-purple-300" />}
+      </button>
+    )}
+
     {/* Particle canvas */}
     <ParticleCanvas />
 

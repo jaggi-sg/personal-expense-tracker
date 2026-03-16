@@ -3,7 +3,7 @@ import {
   Calendar, TrendingUp, TrendingDown, Download, Upload,
   Home, Wifi, Zap, Trash as TrashIcon, Building2, Droplet,
   Phone, Tv, DollarSign, Wrench, Package, Fuel, ShoppingCart,
-  Eye, EyeOff, Award
+  Eye, EyeOff, Award, Archive
 } from 'lucide-react';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -66,8 +66,8 @@ const Summary = ({
   getPendingAndOverdueExpenses,
   exportToJSON,
   exportToCSV,
-  importFromJSON,
-  importFromCSV
+  exportFullBackup,
+  onImportClick,
 }) => {
   const [hideZero, setHideZero] = useState(true);
 
@@ -477,22 +477,25 @@ const Summary = ({
 
       {/* ── Data Management ────────────────────────────────────────────────── */}
       <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-        <h2 className="text-xl font-bold text-white mb-4">Data Management</h2>
-        <div className="flex flex-wrap gap-2">
-          <button onClick={exportToJSON} className="bg-green-500 hover:bg-green-600 text-white rounded-lg px-4 py-2 flex items-center gap-2 transition-all">
+        <h2 className="text-xl font-bold text-white mb-1">Data Management</h2>
+        <p className="text-purple-400 text-xs mb-4">
+          Use <span className="text-violet-300 font-semibold">Full Backup</span> to preserve categories &amp; payment types across ports/devices.
+          Import accepts any format — a diff preview shows what's new before anything is saved.
+        </p>
+        <div className="flex flex-wrap gap-2 items-center">
+          <button onClick={exportToJSON} className="bg-green-600/80 hover:bg-green-600 text-white rounded-lg px-4 py-2 flex items-center gap-2 transition-all text-sm">
             <Download className="w-4 h-4" /> Export JSON
           </button>
-          <button onClick={exportToCSV} className="bg-green-600 hover:bg-green-700 text-white rounded-lg px-4 py-2 flex items-center gap-2 transition-all">
+          <button onClick={exportToCSV} className="bg-green-700/80 hover:bg-green-700 text-white rounded-lg px-4 py-2 flex items-center gap-2 transition-all text-sm">
             <Download className="w-4 h-4" /> Export CSV
           </button>
-          <label className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-4 py-2 flex items-center gap-2 cursor-pointer transition-all">
-            <Upload className="w-4 h-4" /> Import JSON
-            <input type="file" accept=".json" onChange={importFromJSON} className="hidden" />
-          </label>
-          <label className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 flex items-center gap-2 cursor-pointer transition-all">
-            <Upload className="w-4 h-4" /> Import CSV
-            <input type="file" accept=".csv" onChange={importFromCSV} className="hidden" />
-          </label>
+          <button onClick={exportFullBackup} className="bg-violet-600 hover:bg-violet-500 text-white rounded-lg px-4 py-2 flex items-center gap-2 transition-all text-sm font-semibold border border-violet-400/40">
+            <Archive className="w-4 h-4" /> Full Backup
+          </button>
+          <div className="w-px h-8 bg-white/20 mx-1" />
+          <button onClick={onImportClick} className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-4 py-2 flex items-center gap-2 transition-all text-sm">
+            <Upload className="w-4 h-4" /> Import (JSON / CSV)
+          </button>
         </div>
       </div>
     </>

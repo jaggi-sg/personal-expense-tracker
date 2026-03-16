@@ -49,6 +49,8 @@ const NonRecurringExpenses = ({
   onSaveTemplate,
   onClearForm,
   onCloneExpense,
+  onBulkEdit,
+  onSkipMonth,
 }) => {
   const [searchCriteria, setSearchCriteria]       = useState({});
   const [expandedTransactions, setExpandedTransactions] = useState({});
@@ -185,6 +187,8 @@ const NonRecurringExpenses = ({
           onToggleExpanded={toggleTransactions}
           onClone={onCloneExpense}
           onBulkDelete={handleBulkDelete}
+          onBulkEdit={onBulkEdit}
+          onSkipMonth={onSkipMonth}
         />
 
         <Pagination

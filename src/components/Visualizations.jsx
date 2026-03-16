@@ -1,412 +1,461 @@
+// src/components/Visualizations.jsx
+
 import React, { useEffect, useRef } from 'react';
 import { Chart, registerables } from 'chart.js';
+import { TrendingUp, PieChart, BarChart3, Activity, Calendar } from 'lucide-react';
 
 Chart.register(...registerables);
 
-const Visualizations = ({
-  expenses,
-  filterYear,
-  setFilterYear,
-  availableYears
-}) => {
-  const mixedChartRef = useRef(null);
-  const recurringDoughnutRef = useRef(null);
-  const nonRecurringDoughnutRef = useRef(null);
-  const mixedChartInstance = useRef(null);
-  const recurringDoughnutInstance = useRef(null);
-  const nonRecurringDoughnutInstance = useRef(null);
+// ── App-coherent palette ──────────────────────────────────────────────────────
+const PALETTE = [
+  '#7c3aed', '#3b82f6', '#06b6d4', '#10b981', '#f59e0b',
+  '#f97316', '#ec4899', '#8b5cf6', '#6366f1', '#14b8a6',
+];
 
-  const colors = [
-    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-    '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#E7E9ED'
-  ];
+const CHART_DEFAULTS = {
+  legend: (pos = 'bottom') => ({
+    position: pos,
+    labels: { color: 'rgba(216,180,254,0.85)', padding: 16, font: { size: 12 }, boxWidth: 12, boxHeight: 12 },
+  }),
+  tooltip: (fmt) => ({
+    backgroundColor: 'rgba(15,10,30,0.92)',
+    titleColor: '#e9d5ff',
+    bodyColor: '#c4b5fd',
+    borderColor: 'rgba(139,92,246,0.3)',
+    borderWidth: 1,
+    padding: 10,
+    callbacks: fmt || {},
+  }),
+  gridColor: 'rgba(255,255,255,0.06)',
+  tickColor: 'rgba(196,165,253,0.7)',
+};
 
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTHS_FULL  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+// ── Section wrapper ───────────────────────────────────────────────────────────
+const Card = ({ children, className = '' }) => (
+  <div className={`bg-white/10 backdrop-blur-lg rounded-xl border border-white/15 ${className}`}>
+    {children}
+  </div>
+);
+
+// ── Section header ────────────────────────────────────────────────────────────
+const SectionHeader = ({ icon: Icon, title, sub, iconColor = 'text-purple-400' }) => (
+  <div className="flex items-center gap-3 mb-1">
+    <div className={`bg-white/10 p-2 rounded-lg`}>
+      <Icon className={`w-4 h-4 ${iconColor}`} />
+    </div>
+    <div>
+      <h2 className="text-white font-bold text-base leading-none">{title}</h2>
+      {sub && <p className="text-purple-400 text-xs mt-0.5">{sub}</p>}
+    </div>
+  </div>
+);
+
+// ── Inline doughnut legend ────────────────────────────────────────────────────
+const DonutLegend = ({ data, total, colors, onCategoryClick }) => (
+  <div className="flex flex-col gap-1.5 overflow-y-auto max-h-[280px] pr-1">
+    {data.map(([cat, amt], i) => {
+      const pct = total > 0 ? ((amt / total) * 100).toFixed(1) : '0.0';
+      return (
+        <div
+          key={cat}
+          onClick={() => onCategoryClick?.(cat)}
+          className={`flex items-center gap-2 group rounded-lg px-1.5 py-1 -mx-1.5 transition-colors
+            ${onCategoryClick ? 'cursor-pointer hover:bg-white/10' : ''}`}
+        >
+          <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: colors[i] }} />
+          <span className="text-purple-200 text-xs flex-1 truncate group-hover:text-white transition-colors">{cat}</span>
+          <div className="text-right shrink-0">
+            <span className="text-white text-xs font-semibold">${amt.toFixed(0)}</span>
+            <span className="text-purple-500 text-xs ml-1">{pct}%</span>
+          </div>
+          {onCategoryClick && (
+            <span className="text-purple-600 text-xs opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+          )}
+        </div>
+      );
+    })}
+  </div>
+);
+
+// ── Spend Heatmap (pure SVG/div, no Chart.js) ─────────────────────────────────
+const SpendHeatmap = ({ expenses, filterYear }) => {
+  const filtered = expenses.filter(e => {
+    const y = new Date(e.date + 'T00:00:00Z').getUTCFullYear().toString();
+    return (filterYear === 'All' || y === filterYear) && e.status === 'PAID';
+  });
+
+  // Build month × type grid
+  const grid = MONTHS_FULL.map(month => ({
+    month,
+    recurring:    filtered.filter(e => e.month === month && e.type === 'Recurring').reduce((s, e) => s + e.amount, 0),
+    nonRecurring: filtered.filter(e => e.month === month && e.type === 'Non-Recurring').reduce((s, e) => s + e.amount, 0),
+    total:        filtered.filter(e => e.month === month).reduce((s, e) => s + e.amount, 0),
+  }));
+
+  const maxVal = Math.max(...grid.map(g => g.total), 1);
+
+  const heatColor = (val) => {
+    const intensity = val / maxVal;
+    if (intensity === 0) return 'rgba(255,255,255,0.04)';
+    if (intensity < 0.25) return 'rgba(124,58,237,0.25)';
+    if (intensity < 0.5)  return 'rgba(124,58,237,0.45)';
+    if (intensity < 0.75) return 'rgba(109,40,217,0.65)';
+    return 'rgba(109,40,217,0.88)';
+  };
+
+  return (
+    <div>
+      {/* Legend */}
+      <div className="flex items-center gap-2 mb-3 justify-end">
+        <span className="text-purple-500 text-xs">Low</span>
+        {['rgba(255,255,255,0.04)', 'rgba(124,58,237,0.25)', 'rgba(124,58,237,0.45)', 'rgba(109,40,217,0.65)', 'rgba(109,40,217,0.88)'].map((c, i) => (
+          <div key={i} className="w-5 h-3 rounded-sm border border-white/10" style={{ background: c }} />
+        ))}
+        <span className="text-purple-500 text-xs">High</span>
+      </div>
+
+      {/* Grid: 12 months × 2 rows */}
+      <div className="grid gap-1.5" style={{ gridTemplateColumns: 'auto repeat(12, 1fr)' }}>
+        {/* Column headers */}
+        <div />
+        {MONTHS_SHORT.map(m => (
+          <div key={m} className="text-purple-400 text-xs text-center font-medium pb-1">{m}</div>
+        ))}
+
+        {/* Recurring row */}
+        <div className="text-purple-400 text-xs font-medium self-center pr-2 whitespace-nowrap">Recurring</div>
+        {grid.map(({ month, recurring }) => (
+          <div
+            key={month}
+            title={`${month} Recurring: $${recurring.toFixed(2)}`}
+            className="h-8 rounded-md border border-white/10 flex items-center justify-center cursor-default transition-all hover:scale-105 hover:border-purple-400/50"
+            style={{ background: heatColor(recurring) }}
+          >
+            {recurring > 0 && (
+              <span className="text-white/70 text-[9px] font-medium">${Math.round(recurring / 1000) > 0 ? Math.round(recurring / 1000) + 'k' : Math.round(recurring)}</span>
+            )}
+          </div>
+        ))}
+
+        {/* Non-Recurring row */}
+        <div className="text-purple-400 text-xs font-medium self-center pr-2 whitespace-nowrap">Non-Rec</div>
+        {grid.map(({ month, nonRecurring }) => (
+          <div
+            key={month}
+            title={`${month} Non-Recurring: $${nonRecurring.toFixed(2)}`}
+            className="h-8 rounded-md border border-white/10 flex items-center justify-center cursor-default transition-all hover:scale-105 hover:border-blue-400/50"
+            style={{ background: heatColor(nonRecurring) }}
+          >
+            {nonRecurring > 0 && (
+              <span className="text-white/70 text-[9px] font-medium">${Math.round(nonRecurring / 1000) > 0 ? Math.round(nonRecurring / 1000) + 'k' : Math.round(nonRecurring)}</span>
+            )}
+          </div>
+        ))}
+
+        {/* Total row */}
+        <div className="text-purple-400 text-xs font-medium self-center pr-2">Total</div>
+        {grid.map(({ month, total }) => (
+          <div
+            key={month}
+            title={`${month} Total: $${total.toFixed(2)}`}
+            className="h-8 rounded-md border border-white/10 flex items-center justify-center cursor-default transition-all hover:scale-105 hover:border-white/30"
+            style={{ background: heatColor(total) }}
+          >
+            {total > 0 && (
+              <span className="text-white/80 text-[9px] font-bold">${Math.round(total / 1000) > 0 ? Math.round(total / 1000) + 'k' : Math.round(total)}</span>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ── Main component ────────────────────────────────────────────────────────────
+const Visualizations = ({ expenses, filterYear, setFilterYear, availableYears, onCategoryClick }) => {
+  const mixedRef          = useRef(null);
+  const cumulativeRef     = useRef(null);
+  const recurDonutRef     = useRef(null);
+  const nonRecurDonutRef  = useRef(null);
+  const mixedInst         = useRef(null);
+  const cumulativeInst    = useRef(null);
+  const recurDonutInst    = useRef(null);
+  const nonRecurDonutInst = useRef(null);
+
+  // ── Derived data ────────────────────────────────────────────────────────────
+  const yearFiltered = expenses.filter(e => {
+    const y = new Date(e.date + 'T00:00:00Z').getUTCFullYear().toString();
+    return filterYear === 'All' || y === filterYear;
+  });
+
+  const recurPaid    = yearFiltered.filter(e => e.type === 'Recurring'    && e.status === 'PAID');
+  const nonRecurPaid = yearFiltered.filter(e => e.type === 'Non-Recurring' && e.status === 'PAID');
+
+  const recurTotal    = recurPaid.reduce((s, e) => s + e.amount, 0);
+  const nonRecurTotal = nonRecurPaid.reduce((s, e) => s + e.amount, 0);
+  const grandTotal    = recurTotal + nonRecurTotal;
+
+  const monthlyRec    = MONTHS_FULL.map(m => recurPaid.filter(e => e.month === m).reduce((s, e) => s + e.amount, 0));
+  const monthlyNonRec = MONTHS_FULL.map(m => nonRecurPaid.filter(e => e.month === m).reduce((s, e) => s + e.amount, 0));
+
+  // Cumulative totals
+  let cumRec = 0, cumNon = 0;
+  const cumulativeRec    = monthlyRec.map(v    => (cumRec += v));
+  const cumulativeNonRec = monthlyNonRec.map(v => (cumNon += v));
+  const cumulativeTotal  = cumulativeRec.map((v, i) => v + cumulativeNonRec[i]);
+
+  // Category tables
+  const buildCatData = (list) => {
+    const map = {};
+    list.forEach(e => { map[e.category] = (map[e.category] || 0) + e.amount; });
+    return Object.entries(map).sort(([,a],[,b]) => b - a).slice(0, 10);
+  };
+  const recurCatData    = buildCatData(recurPaid);
+  const nonRecurCatData = buildCatData(nonRecurPaid);
+
+  // ── Charts ──────────────────────────────────────────────────────────────────
   useEffect(() => {
-    // Destroy existing charts
-    if (mixedChartInstance.current) {
-      mixedChartInstance.current.destroy();
-    }
-    if (recurringDoughnutInstance.current) {
-      recurringDoughnutInstance.current.destroy();
-    }
-    if (nonRecurringDoughnutInstance.current) {
-      nonRecurringDoughnutInstance.current.destroy();
-    }
-
-    // Filter expenses by year
-    const filteredExpenses = expenses.filter(exp => {
-      const expYear = new Date(exp.date + 'T00:00:00Z').getUTCFullYear().toString();
-      return filterYear === 'All' || expYear === filterYear;
+    // Destroy old
+    [mixedInst, cumulativeInst, recurDonutInst, nonRecurDonutInst].forEach(r => {
+      if (r.current) { r.current.destroy(); r.current = null; }
     });
 
-    const recurringExpenses = filteredExpenses.filter(exp => exp.type === 'Recurring' && exp.status === 'PAID');
-    const nonRecurringExpenses = filteredExpenses.filter(exp => exp.type === 'Non-Recurring' && exp.status === 'PAID');
+    const axisOpts = {
+      ticks: { color: CHART_DEFAULTS.tickColor, font: { size: 11 } },
+      grid:  { color: CHART_DEFAULTS.gridColor },
+    };
 
-    // Prepare monthly data
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    const monthlyRecurring = months.map(month =>
-      recurringExpenses.filter(exp => exp.month === month).reduce((sum, exp) => sum + exp.amount, 0)
-    );
-    const monthlyNonRecurring = months.map(month =>
-      nonRecurringExpenses.filter(exp => exp.month === month).reduce((sum, exp) => sum + exp.amount, 0)
-    );
-
-    // Prepare category data for Recurring
-    const recurringCategories = {};
-    recurringExpenses.forEach(exp => {
-      recurringCategories[exp.category] = (recurringCategories[exp.category] || 0) + exp.amount;
-    });
-    const recurringCategoryData = Object.entries(recurringCategories)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10);
-
-    // Prepare category data for Non-Recurring
-    const nonRecurringCategories = {};
-    nonRecurringExpenses.forEach(exp => {
-      nonRecurringCategories[exp.category] = (nonRecurringCategories[exp.category] || 0) + exp.amount;
-    });
-    const nonRecurringCategoryData = Object.entries(nonRecurringCategories)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10);
-
-    // Mixed Chart
-    if (mixedChartRef.current) {
-      mixedChartInstance.current = new Chart(mixedChartRef.current, {
+    // Mixed bar + trend line
+    if (mixedRef.current) {
+      mixedInst.current = new Chart(mixedRef.current, {
         type: 'bar',
         data: {
-          labels: months.map(m => m.substring(0, 3)),
-          datasets: [{
-            type: 'line',
-            label: 'Total Trend',
-            data: monthlyRecurring.map((r, i) => r + monthlyNonRecurring[i]),
-            borderColor: '#ff6384',
-            backgroundColor: 'rgba(255, 99, 132, 0.1)',
-            borderWidth: 3,
-            tension: 0.4,
-            fill: false,
-            yAxisID: 'y'
-          }, {
-            type: 'bar',
-            label: 'Recurring',
-            data: monthlyRecurring,
-            backgroundColor: '#667eea',
-            yAxisID: 'y'
-          }, {
-            type: 'bar',
-            label: 'Non-Recurring',
-            data: monthlyNonRecurring,
-            backgroundColor: '#f093fb',
-            yAxisID: 'y'
-          }]
+          labels: MONTHS_SHORT,
+          datasets: [
+            {
+              type: 'line', label: 'Total Trend',
+              data: monthlyRec.map((r, i) => r + monthlyNonRec[i]),
+              borderColor: '#f472b6', backgroundColor: 'rgba(244,114,182,0.08)',
+              borderWidth: 2.5, tension: 0.45, fill: true, pointRadius: 3,
+              pointBackgroundColor: '#f472b6', yAxisID: 'y',
+            },
+            {
+              type: 'bar', label: 'Recurring',
+              data: monthlyRec, backgroundColor: 'rgba(124,58,237,0.75)',
+              borderRadius: 4, yAxisID: 'y',
+            },
+            {
+              type: 'bar', label: 'Non-Recurring',
+              data: monthlyNonRec, backgroundColor: 'rgba(59,130,246,0.75)',
+              borderRadius: 4, yAxisID: 'y',
+            },
+          ],
         },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
+          responsive: true, maintainAspectRatio: false,
           plugins: {
-            legend: {
-              position: 'bottom',
-              labels: {
-                color: '#fff',
-                padding: 15,
-                font: {
-                  size: 12
-                }
-              }
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  return context.dataset.label + ': $' + context.parsed.y.toFixed(2);
-                }
-              }
-            }
+            legend: CHART_DEFAULTS.legend(),
+            tooltip: CHART_DEFAULTS.tooltip({
+              label: ctx => `${ctx.dataset.label}: $${ctx.parsed.y.toFixed(2)}`,
+            }),
           },
           scales: {
-            y: {
-              type: 'linear',
-              position: 'left',
-              beginAtZero: true,
-              ticks: {
-                callback: function(value) {
-                  return '$' + value;
-                },
-                color: '#fff'
-              },
-              grid: {
-                color: 'rgba(255, 255, 255, 0.1)'
-              }
-            },
-            x: {
-              ticks: {
-                color: '#fff'
-              },
-              grid: {
-                color: 'rgba(255, 255, 255, 0.1)'
-              }
-            }
-          }
-        }
+            y: { ...axisOpts, beginAtZero: true, ticks: { ...axisOpts.ticks, callback: v => '$' + v } },
+            x: axisOpts,
+          },
+        },
       });
     }
 
-    // Recurring Doughnut Chart
-    if (recurringDoughnutRef.current && recurringCategoryData.length > 0) {
-      recurringDoughnutInstance.current = new Chart(recurringDoughnutRef.current, {
-        type: 'doughnut',
+    // Cumulative line
+    if (cumulativeRef.current) {
+      cumulativeInst.current = new Chart(cumulativeRef.current, {
+        type: 'line',
         data: {
-          labels: recurringCategoryData.map(([category]) => category),
-          datasets: [{
-            data: recurringCategoryData.map(([, amount]) => amount),
-            backgroundColor: colors,
-            borderWidth: 0
-          }]
+          labels: MONTHS_SHORT,
+          datasets: [
+            {
+              label: 'Total', data: cumulativeTotal,
+              borderColor: '#f472b6', backgroundColor: 'rgba(244,114,182,0.07)',
+              borderWidth: 2.5, fill: true, tension: 0.4, pointRadius: 3,
+              pointBackgroundColor: '#f472b6',
+            },
+            {
+              label: 'Recurring', data: cumulativeRec,
+              borderColor: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.06)',
+              borderWidth: 2, fill: true, tension: 0.4, pointRadius: 3,
+              pointBackgroundColor: '#7c3aed',
+            },
+            {
+              label: 'Non-Recurring', data: cumulativeNonRec,
+              borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.06)',
+              borderWidth: 2, fill: true, tension: 0.4, pointRadius: 3,
+              pointBackgroundColor: '#3b82f6',
+            },
+          ],
         },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
+          responsive: true, maintainAspectRatio: false,
           plugins: {
-            legend: {
-              display: false
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                  const percentage = ((context.parsed / total) * 100).toFixed(1);
-                  return context.label + ': $' + context.parsed.toFixed(2) + ' (' + percentage + '%)';
-                }
-              }
-            }
-          }
-        }
+            legend: CHART_DEFAULTS.legend(),
+            tooltip: CHART_DEFAULTS.tooltip({
+              label: ctx => `${ctx.dataset.label}: $${ctx.parsed.y.toFixed(2)}`,
+            }),
+          },
+          scales: {
+            y: { ...axisOpts, beginAtZero: true, ticks: { ...axisOpts.ticks, callback: v => '$' + v } },
+            x: axisOpts,
+          },
+        },
       });
     }
 
-    // Non-Recurring Doughnut Chart
-    if (nonRecurringDoughnutRef.current && nonRecurringCategoryData.length > 0) {
-      nonRecurringDoughnutInstance.current = new Chart(nonRecurringDoughnutRef.current, {
+    // Recurring donut
+    if (recurDonutRef.current && recurCatData.length > 0) {
+      recurDonutInst.current = new Chart(recurDonutRef.current, {
         type: 'doughnut',
         data: {
-          labels: nonRecurringCategoryData.map(([category]) => category),
-          datasets: [{
-            data: nonRecurringCategoryData.map(([, amount]) => amount),
-            backgroundColor: colors,
-            borderWidth: 0
-          }]
+          labels: recurCatData.map(([c]) => c),
+          datasets: [{ data: recurCatData.map(([,v]) => v), backgroundColor: PALETTE, borderWidth: 0, hoverOffset: 6 }],
         },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
+          responsive: true, maintainAspectRatio: false, cutout: '68%',
           plugins: {
-            legend: {
-              display: false
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                  const percentage = ((context.parsed / total) * 100).toFixed(1);
-                  return context.label + ': $' + context.parsed.toFixed(2) + ' (' + percentage + '%)';
-                }
-              }
-            }
-          }
-        }
+            legend: { display: false },
+            tooltip: CHART_DEFAULTS.tooltip({
+              label: ctx => {
+                const t = ctx.dataset.data.reduce((a,b) => a+b, 0);
+                return `${ctx.label}: $${ctx.parsed.toFixed(2)} (${((ctx.parsed/t)*100).toFixed(1)}%)`;
+              },
+            }),
+          },
+        },
+      });
+    }
+
+    // Non-recurring donut
+    if (nonRecurDonutRef.current && nonRecurCatData.length > 0) {
+      nonRecurDonutInst.current = new Chart(nonRecurDonutRef.current, {
+        type: 'doughnut',
+        data: {
+          labels: nonRecurCatData.map(([c]) => c),
+          datasets: [{ data: nonRecurCatData.map(([,v]) => v), backgroundColor: PALETTE, borderWidth: 0, hoverOffset: 6 }],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, cutout: '68%',
+          plugins: {
+            legend: { display: false },
+            tooltip: CHART_DEFAULTS.tooltip({
+              label: ctx => {
+                const t = ctx.dataset.data.reduce((a,b) => a+b, 0);
+                return `${ctx.label}: $${ctx.parsed.toFixed(2)} (${((ctx.parsed/t)*100).toFixed(1)}%)`;
+              },
+            }),
+          },
+        },
       });
     }
 
     return () => {
-      if (mixedChartInstance.current) mixedChartInstance.current.destroy();
-      if (recurringDoughnutInstance.current) recurringDoughnutInstance.current.destroy();
-      if (nonRecurringDoughnutInstance.current) nonRecurringDoughnutInstance.current.destroy();
+      [mixedInst, cumulativeInst, recurDonutInst, nonRecurDonutInst].forEach(r => {
+        if (r.current) { r.current.destroy(); r.current = null; }
+      });
     };
   }, [expenses, filterYear]);
 
-  // Calculate totals and category data for tables
-  const filteredExpenses = expenses.filter(exp => {
-    const expYear = new Date(exp.date + 'T00:00:00Z').getUTCFullYear().toString();
-    return filterYear === 'All' || expYear === filterYear;
-  });
-
-  const recurringExpensesFiltered = filteredExpenses.filter(exp => exp.type === 'Recurring' && exp.status === 'PAID');
-  const nonRecurringExpensesFiltered = filteredExpenses.filter(exp => exp.type === 'Non-Recurring' && exp.status === 'PAID');
-
-  const recurringTotal = recurringExpensesFiltered.reduce((sum, exp) => sum + exp.amount, 0);
-  const nonRecurringTotal = nonRecurringExpensesFiltered.reduce((sum, exp) => sum + exp.amount, 0);
-  const grandTotal = recurringTotal + nonRecurringTotal;
-
-  // Prepare category data for tables
-  const recurringCategoriesData = {};
-  recurringExpensesFiltered.forEach(exp => {
-    recurringCategoriesData[exp.category] = (recurringCategoriesData[exp.category] || 0) + exp.amount;
-  });
-  const recurringCategoryTable = Object.entries(recurringCategoriesData)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10);
-
-  const nonRecurringCategoriesData = {};
-  nonRecurringExpensesFiltered.forEach(exp => {
-    nonRecurringCategoriesData[exp.category] = (nonRecurringCategoriesData[exp.category] || 0) + exp.amount;
-  });
-  const nonRecurringCategoryTable = Object.entries(nonRecurringCategoriesData)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10);
-
-  const recurringCategories = new Set(recurringExpensesFiltered.map(exp => exp.category)).size;
-  const nonRecurringCategories = new Set(nonRecurringExpensesFiltered.map(exp => exp.category)).size;
-
+  // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-6">
-      {/* Year Filter */}
-      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <h2 className="text-xl font-bold text-white">Expense Visualizations</h2>
-          <select
-            value={filterYear}
-            onChange={(e) => setFilterYear(e.target.value)}
-            className="bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white"
-          >
-            <option value="All">All Years</option>
-            {availableYears.map(year => (
-              <option key={year} value={year}>{year}</option>
-            ))}
-          </select>
-        </div>
-      </div>
+    <div className="space-y-5">
 
-      {/* Mixed Chart Section */}
-      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-        <h2 className="text-2xl font-bold text-white mb-4 text-center">
-          🎯 Monthly Expense Trends
-        </h2>
-        <p className="text-purple-200 text-sm mb-6 text-center">
-          Combined view showing monthly breakdown and total trend line
-        </p>
-        <div style={{ position: 'relative', height: '400px' }}>
-          <canvas ref={mixedChartRef}></canvas>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-          <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-4 rounded-lg text-center">
-            <div className="text-3xl font-bold text-white">${recurringTotal.toFixed(2)}</div>
-            <div className="text-sm text-purple-100 mt-1">Total Recurring</div>
-          </div>
-          <div className="bg-gradient-to-br from-blue-500 to-cyan-500 p-4 rounded-lg text-center">
-            <div className="text-3xl font-bold text-white">${nonRecurringTotal.toFixed(2)}</div>
-            <div className="text-sm text-blue-100 mt-1">Total Non-Recurring</div>
-          </div>
-          <div className="bg-gradient-to-br from-green-500 to-teal-500 p-4 rounded-lg text-center">
-            <div className="text-3xl font-bold text-white">${grandTotal.toFixed(2)}</div>
-            <div className="text-sm text-green-100 mt-1">Grand Total</div>
-          </div>
-          <div className="bg-gradient-to-br from-orange-500 to-red-500 p-4 rounded-lg text-center">
-            <div className="text-3xl font-bold text-white">{recurringCategories + nonRecurringCategories}</div>
-            <div className="text-sm text-orange-100 mt-1">Total Categories</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Doughnut Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recurring Doughnut */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-          <h2 className="text-xl font-bold text-white mb-4 text-center">
-            🍩 Recurring Expenses Breakdown
-          </h2>
-          <p className="text-purple-200 text-sm mb-4 text-center">
-            Distribution by category (Top 10)
+      {/* ── Page header + year selector ─────────────────────────────────────── */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-white">Visualizations</h2>
+          <p className="text-purple-400 text-xs mt-0.5">
+            {filterYear === 'All' ? 'Showing all years' : `Showing ${filterYear}`}
+            {' · '}{yearFiltered.length} expenses
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div style={{ position: 'relative', height: '300px' }}>
-              <canvas ref={recurringDoughnutRef}></canvas>
-            </div>
-            <div className="overflow-auto max-h-[300px]">
-              <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-white/10">
-                  <tr className="border-b border-white/20">
-                    <th className="text-left py-2 px-2 text-purple-200 font-semibold"></th>
-                    <th className="text-left py-2 px-2 text-purple-200 font-semibold">Category</th>
-                    <th className="text-right py-2 px-2 text-purple-200 font-semibold">Amount</th>
-                    <th className="text-right py-2 px-2 text-purple-200 font-semibold">%</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recurringCategoryTable.map(([category, amount], index) => {
-                    const percentage = ((amount / recurringTotal) * 100).toFixed(1);
-                    return (
-                      <tr key={category} className="border-b border-white/10">
-                        <td className="py-2 px-2">
-                          <div
-                            className="w-4 h-4 rounded"
-                            style={{ backgroundColor: colors[index] }}
-                          ></div>
-                        </td>
-                        <td className="py-2 px-2 text-white">{category}</td>
-                        <td className="py-2 px-2 text-white text-right font-semibold">${amount.toFixed(2)}</td>
-                        <td className="py-2 px-2 text-purple-200 text-right">{percentage}%</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div className="mt-4 text-center pt-4 border-t border-white/20">
-            <div className="text-2xl font-bold text-white">${recurringTotal.toFixed(2)}</div>
-            <div className="text-sm text-purple-200">Total Recurring</div>
-          </div>
         </div>
-
-        {/* Non-Recurring Doughnut */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-          <h2 className="text-xl font-bold text-white mb-4 text-center">
-            🍩 Non-Recurring Expenses Breakdown
-          </h2>
-          <p className="text-purple-200 text-sm mb-4 text-center">
-            Distribution by category (Top 10)
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div style={{ position: 'relative', height: '300px' }}>
-              <canvas ref={nonRecurringDoughnutRef}></canvas>
-            </div>
-            <div className="overflow-auto max-h-[300px]">
-              <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-white/10">
-                  <tr className="border-b border-white/20">
-                    <th className="text-left py-2 px-2 text-purple-200 font-semibold"></th>
-                    <th className="text-left py-2 px-2 text-purple-200 font-semibold">Category</th>
-                    <th className="text-right py-2 px-2 text-purple-200 font-semibold">Amount</th>
-                    <th className="text-right py-2 px-2 text-purple-200 font-semibold">%</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {nonRecurringCategoryTable.map(([category, amount], index) => {
-                    const percentage = ((amount / nonRecurringTotal) * 100).toFixed(1);
-                    return (
-                      <tr key={category} className="border-b border-white/10">
-                        <td className="py-2 px-2">
-                          <div
-                            className="w-4 h-4 rounded"
-                            style={{ backgroundColor: colors[index] }}
-                          ></div>
-                        </td>
-                        <td className="py-2 px-2 text-white">{category}</td>
-                        <td className="py-2 px-2 text-white text-right font-semibold">${amount.toFixed(2)}</td>
-                        <td className="py-2 px-2 text-purple-200 text-right">{percentage}%</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div className="mt-4 text-center pt-4 border-t border-white/20">
-            <div className="text-2xl font-bold text-white">${nonRecurringTotal.toFixed(2)}</div>
-            <div className="text-sm text-purple-200">Total Non-Recurring</div>
-          </div>
-        </div>
+        <select
+          value={filterYear}
+          onChange={e => setFilterYear(e.target.value)}
+          className="bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-400"
+        >
+          <option value="All">All Years</option>
+          {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
+        </select>
       </div>
+
+      {/* ── Stats row ───────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { label: 'Recurring',     value: `$${recurTotal.toFixed(2)}`,    color: 'border-l-violet-500', sub: `${recurPaid.length} entries` },
+          { label: 'Non-Recurring', value: `$${nonRecurTotal.toFixed(2)}`, color: 'border-l-blue-500',   sub: `${nonRecurPaid.length} entries` },
+          { label: 'Grand Total',   value: `$${grandTotal.toFixed(2)}`,    color: 'border-l-pink-500',   sub: 'all paid expenses' },
+          { label: 'Categories',    value: new Set([...recurPaid, ...nonRecurPaid].map(e => e.category)).size, color: 'border-l-cyan-500', sub: 'unique categories' },
+        ].map(s => (
+          <Card key={s.label} className={`p-4 border-l-4 ${s.color}`}>
+            <p className="text-purple-400 text-xs uppercase tracking-wide mb-1">{s.label}</p>
+            <p className="text-white font-bold text-xl leading-none">{s.value}</p>
+            <p className="text-purple-500 text-xs mt-1">{s.sub}</p>
+          </Card>
+        ))}
+      </div>
+
+      {/* ── Monthly trend bar + line ─────────────────────────────────────────── */}
+      <Card className="p-5">
+        <SectionHeader icon={BarChart3} title="Monthly Expense Trends" sub="Recurring vs non-recurring with total trend line" iconColor="text-violet-400" />
+        <div className="mt-4" style={{ height: 340 }}>
+          <canvas ref={mixedRef} />
+        </div>
+      </Card>
+
+      {/* ── Cumulative spend ────────────────────────────────────────────────── */}
+      <Card className="p-5">
+        <SectionHeader icon={TrendingUp} title="Cumulative Spend" sub="Running total across the year" iconColor="text-pink-400" />
+        <div className="mt-4" style={{ height: 300 }}>
+          <canvas ref={cumulativeRef} />
+        </div>
+      </Card>
+
+      {/* ── Heatmap ─────────────────────────────────────────────────────────── */}
+      <Card className="p-5">
+        <SectionHeader icon={Calendar} title="Monthly Spend Heatmap" sub="Darker = higher spend · hover for exact amount" iconColor="text-cyan-400" />
+        <div className="mt-4 overflow-x-auto">
+          <SpendHeatmap expenses={expenses} filterYear={filterYear} />
+        </div>
+      </Card>
+
+      {/* ── Doughnut charts ─────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+        {/* Recurring */}
+        <Card className="p-5">
+          <SectionHeader icon={PieChart} title="Recurring by Category" sub={`Top ${recurCatData.length} categories · $${recurTotal.toFixed(2)} total`} iconColor="text-violet-400" />
+          <div className="mt-4 grid grid-cols-2 gap-4 items-center">
+            <div style={{ height: 220 }}>
+              <canvas ref={recurDonutRef} />
+            </div>
+            <DonutLegend data={recurCatData} total={recurTotal} colors={PALETTE} onCategoryClick={onCategoryClick} />
+          </div>
+        </Card>
+
+        {/* Non-Recurring */}
+        <Card className="p-5">
+          <SectionHeader icon={PieChart} title="Non-Recurring by Category" sub={`Top ${nonRecurCatData.length} categories · $${nonRecurTotal.toFixed(2)} total`} iconColor="text-blue-400" />
+          <div className="mt-4 grid grid-cols-2 gap-4 items-center">
+            <div style={{ height: 220 }}>
+              <canvas ref={nonRecurDonutRef} />
+            </div>
+            <DonutLegend data={nonRecurCatData} total={nonRecurTotal} colors={PALETTE} onCategoryClick={onCategoryClick} />
+          </div>
+        </Card>
+
+      </div>
+
     </div>
   );
 };

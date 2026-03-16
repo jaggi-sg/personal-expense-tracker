@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+// src/App.jsx
+
+import React, { useState, useRef } from 'react';
 import AdvancedAnalytics from './components/AdvancedAnalytics';
 import Summary from './components/Summary';
 import RecurringExpenses from './components/RecurringExpenses';
@@ -8,46 +10,56 @@ import Header from './components/Header';
 import TabNavigation from './components/TabNavigation';
 import BackupReminder from './components/BackupReminder';
 import SaveTemplateModal from './components/SaveTemplateModal';
+import ImportPreviewModal from './components/ImportPreviewModal';
+import BulkEditModal from './components/BulkEditModal';
+import SkipMonthModal from './components/SkipMonthModal';
+import CategoryDrillDownModal from './components/CategoryDrillDownModal';
+import { useTheme } from './hooks/useTheme';
 import { useExpenseTemplates } from './hooks/useExpenseTemplates';
 import { useExpenseData } from './hooks/useExpenseData';
 import { useExpenseForm } from './hooks/useExpenseForm';
 import { useExpenseActions } from './hooks/useExpenseActions';
 import { useBackupReminder } from './hooks/useBackupReminder';
 import { useAutoRecurringExpenses } from './hooks/useAutoRecurringExpenses';
-import { exportToJSON, exportToCSV, importFromJSON, importFromCSV } from './utils/dataExport';
+import {
+  exportToJSON, exportToCSV,
+  exportFullBackup,
+  parseImportFile, computeImportDiff,
+  importFromJSON, importFromCSV,
+} from './utils/dataExport';
 import { getAvailableYears, getCategorySummary, getYearlyTotal, getPendingAndOverdueExpenses } from './utils/summaryCalculations';
 
 const App = () => {
-  const [activeTab, setActiveTab] = useState('summary');
-  const [filterYear, setFilterYear] = useState('All');
+  const [activeTab,   setActiveTab]   = useState('summary');
+  const [filterYear,  setFilterYear]  = useState('All');
 
-  // Data management
+  // ── Theme ────────────────────────────────────────────────────────────────────
+  const { isDark, toggleTheme } = useTheme();
+
+  // ── Category drill-down ──────────────────────────────────────────────────────
+  const [drillCategory,    setDrillCategory]    = useState(null);
+  const [showDrillDown,    setShowDrillDown]    = useState(false);
+
+  const handleCategoryClick = (category) => {
+    setDrillCategory(category);
+    setShowDrillDown(true);
+  };
+
+  // ── Data ────────────────────────────────────────────────────────────────────
   const {
-    expenses,
-    loading,
-    categories,
-    nonRecurringCategories,
-    paymentTypes,
-    saveExpenses,
-    saveCategories,
-    saveNonRecurringCategories,
-    savePaymentTypes
+    expenses, loading,
+    categories, nonRecurringCategories, paymentTypes,
+    saveExpenses, saveCategories, saveNonRecurringCategories, savePaymentTypes,
   } = useExpenseData();
 
-  // ─── Separate form state per tab ───────────────────────────────────────────
+  // ── Forms (separate state per tab) ──────────────────────────────────────────
   const {
-    formData: recurringFormData,
-    setFormData: setRecurringFormData,
-    showNewCategoryInput: recurringShowNewCategoryInput,
-    setShowNewCategoryInput: recurringSetShowNewCategoryInput,
-    newCategoryName: recurringNewCategoryName,
-    setNewCategoryName: recurringSetNewCategoryName,
-    showNewPaymentTypeInput: recurringShowNewPaymentTypeInput,
-    setShowNewPaymentTypeInput: recurringSetShowNewPaymentTypeInput,
-    newPaymentTypeName: recurringNewPaymentTypeName,
-    setNewPaymentTypeName: recurringSetNewPaymentTypeName,
-    showSubTransactions: recurringShowSubTransactions,
-    setShowSubTransactions: recurringSetShowSubTransactions,
+    formData: recurringFormData, setFormData: setRecurringFormData,
+    showNewCategoryInput: recurringShowNewCategoryInput, setShowNewCategoryInput: recurringSetShowNewCategoryInput,
+    newCategoryName: recurringNewCategoryName, setNewCategoryName: recurringSetNewCategoryName,
+    showNewPaymentTypeInput: recurringShowNewPaymentTypeInput, setShowNewPaymentTypeInput: recurringSetShowNewPaymentTypeInput,
+    newPaymentTypeName: recurringNewPaymentTypeName, setNewPaymentTypeName: recurringSetNewPaymentTypeName,
+    showSubTransactions: recurringShowSubTransactions, setShowSubTransactions: recurringSetShowSubTransactions,
     subTransactions: recurringSubTransactions,
     resetForm: resetRecurringForm,
     addSubTransaction: recurringAddSubTransaction,
@@ -56,159 +68,200 @@ const App = () => {
   } = useExpenseForm('recurring');
 
   const {
-    formData: nonRecurringFormData,
-    setFormData: setNonRecurringFormData,
-    showNewCategoryInput: nonRecurringShowNewCategoryInput,
-    setShowNewCategoryInput: nonRecurringSetShowNewCategoryInput,
-    newCategoryName: nonRecurringNewCategoryName,
-    setNewCategoryName: nonRecurringSetNewCategoryName,
-    showNewPaymentTypeInput: nonRecurringShowNewPaymentTypeInput,
-    setShowNewPaymentTypeInput: nonRecurringSetShowNewPaymentTypeInput,
-    newPaymentTypeName: nonRecurringNewPaymentTypeName,
-    setNewPaymentTypeName: nonRecurringSetNewPaymentTypeName,
-    showSubTransactions: nonRecurringShowSubTransactions,
-    setShowSubTransactions: nonRecurringSetShowSubTransactions,
+    formData: nonRecurringFormData, setFormData: setNonRecurringFormData,
+    showNewCategoryInput: nonRecurringShowNewCategoryInput, setShowNewCategoryInput: nonRecurringSetShowNewCategoryInput,
+    newCategoryName: nonRecurringNewCategoryName, setNewCategoryName: nonRecurringSetNewCategoryName,
+    showNewPaymentTypeInput: nonRecurringShowNewPaymentTypeInput, setShowNewPaymentTypeInput: nonRecurringSetShowNewPaymentTypeInput,
+    newPaymentTypeName: nonRecurringNewPaymentTypeName, setNewPaymentTypeName: nonRecurringSetNewPaymentTypeName,
+    showSubTransactions: nonRecurringShowSubTransactions, setShowSubTransactions: nonRecurringSetShowSubTransactions,
     subTransactions: nonRecurringSubTransactions,
     resetForm: resetNonRecurringForm,
     addSubTransaction: nonRecurringAddSubTransaction,
     updateSubTransaction: nonRecurringUpdateSubTransaction,
     removeSubTransaction: nonRecurringRemoveSubTransaction,
   } = useExpenseForm('non-recurring');
-  // ───────────────────────────────────────────────────────────────────────────
 
-  // Expense actions
-  const {
-    editingExpense,
-    setEditingExpense,
-    handleAddCategory,
-    handleAddPaymentType,
-    handleAddExpense,
-    deleteExpense,
-    saveEdit,
-    cancelEdit,
-    deleteAllExpenses
-  } = useExpenseActions(
-    expenses,
-    saveExpenses,
-    categories,
-    nonRecurringCategories,
-    saveCategories,
-    saveNonRecurringCategories,
-    paymentTypes,
-    savePaymentTypes,
-    activeTab
-  );
-
-  // Backup reminder
-  const {
-    showBackupReminder,
-    handleBackupNow,
-    dismissBackupReminder
-  } = useBackupReminder(
-    () => exportToJSON(expenses),
-    () => exportToCSV(expenses)
-  );
-
-  // Template management
-  const {
-    templates,
-    addTemplate,
-    deleteTemplate,
-    toggleFavorite
-  } = useExpenseTemplates();
-
-  const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
-
-  // Which tab's formData is currently being used for saving a template
   const activeFormData = activeTab === 'recurring' ? recurringFormData : nonRecurringFormData;
+
+  // ── Actions ──────────────────────────────────────────────────────────────────
+  const {
+    editingExpense, setEditingExpense,
+    handleAddCategory, handleAddPaymentType,
+    handleAddExpense, deleteExpense, saveEdit, cancelEdit, deleteAllExpenses,
+  } = useExpenseActions(
+    expenses, saveExpenses,
+    categories, nonRecurringCategories,
+    saveCategories, saveNonRecurringCategories,
+    paymentTypes, savePaymentTypes,
+    activeTab,
+  );
+
+  // ── Backup reminder ──────────────────────────────────────────────────────────
+  const { showBackupReminder, handleBackupNow, dismissBackupReminder } = useBackupReminder(
+    () => exportToJSON(expenses),
+    () => exportToCSV(expenses),
+  );
+
+  // ── Templates ────────────────────────────────────────────────────────────────
+  const { templates, addTemplate, deleteTemplate, toggleFavorite } = useExpenseTemplates();
+  const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
 
   const handleSaveAsTemplate = (templateName) => {
     if (!activeFormData.category || !activeFormData.description) {
       alert('Please fill in at least category and description before saving template');
       return;
     }
-    const templateData = {
-      ...activeFormData,
-      type: activeTab === 'recurring' ? 'Recurring' : 'Non-Recurring'
-    };
-    try {
-      addTemplate(templateData, templateName);
-      alert(`✅ Template "${templateName}" saved successfully!`);
-    } catch (error) {
-      console.error('Error saving template:', error);
-      alert('Failed to save template. Please try again.');
-    }
+    addTemplate({ ...activeFormData, type: activeTab === 'recurring' ? 'Recurring' : 'Non-Recurring' }, templateName);
+    alert(`✅ Template "${templateName}" saved successfully!`);
   };
 
   const handleLoadTemplate = (template) => {
     const loaded = {
       date: new Date().toISOString().split('T')[0],
       month: new Date().toLocaleString('default', { month: 'long', timeZone: 'UTC' }),
-      category: template.category,
-      description: template.description,
-      amount: template.amount.toString(),
-      paymentType: template.paymentType,
-      by: template.by,
-      status: template.status,
-      type: template.type
+      category: template.category, description: template.description,
+      amount: template.amount.toString(), paymentType: template.paymentType,
+      by: template.by, status: template.status, type: template.type,
     };
-    if (activeTab === 'recurring') {
-      setRecurringFormData(loaded);
-    } else {
-      setNonRecurringFormData(loaded);
-    }
+    activeTab === 'recurring' ? setRecurringFormData(loaded) : setNonRecurringFormData(loaded);
   };
 
   const handleDeleteTemplate = (templateId) => {
-    const template = templates.find(t => t.id === templateId);
-    if (window.confirm(`Are you sure you want to delete template "${template.name}"?`)) {
-      deleteTemplate(templateId);
-    }
+    const t = templates.find(t => t.id === templateId);
+    if (window.confirm(`Delete template "${t?.name}"?`)) deleteTemplate(templateId);
   };
 
   const handleCloneExpense = (expense) => {
-    const clonedExpense = {
+    saveExpenses([...expenses, {
       ...expense,
       id: Date.now().toString(),
       date: new Date().toISOString().split('T')[0],
-      month: new Date().toLocaleString('default', { month: 'long', timeZone: 'UTC' })
-    };
-    saveExpenses([...expenses, clonedExpense]);
-    alert('✅ Expense cloned successfully with today\'s date!');
+      month: new Date().toLocaleString('default', { month: 'long', timeZone: 'UTC' }),
+    }]);
+    alert('✅ Expense cloned with today\'s date!');
   };
 
-  // Auto-generate recurring expenses
+  // ── Bulk edit ────────────────────────────────────────────────────────────────
+  const [bulkEditIds,       setBulkEditIds]       = useState([]);
+  const [showBulkEditModal, setShowBulkEditModal] = useState(false);
+
+  const handleOpenBulkEdit = (ids) => {
+    setBulkEditIds(ids);
+    setShowBulkEditModal(true);
+  };
+
+  const handleApplyBulkEdit = (ids, changes) => {
+    const updated = expenses.map(e =>
+      ids.includes(e.id) ? { ...e, ...changes } : e
+    );
+    saveExpenses(updated);
+    alert(`✅ Updated ${ids.length} expense${ids.length !== 1 ? 's' : ''}`);
+  };
+
+  // ── Skip month ────────────────────────────────────────────────────────────────
+  const [skipTarget,        setSkipTarget]        = useState(null);
+  const [showSkipModal,     setShowSkipModal]     = useState(false);
+
+  const handleOpenSkipMonth = (expense) => {
+    setSkipTarget(expense);
+    setShowSkipModal(true);
+  };
+
+  const handleConfirmSkip = ({ expense, month, year, reason }) => {
+    // Add a SKIPPED marker expense — same data, status = 'SKIPPED', description annotated
+    const skipped = {
+      ...expense,
+      id:          `${expense.id}-skip-${month}-${year}`,
+      date:        `${year}-${String(['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(month) + 1).padStart(2,'0')}-01`,
+      month,
+      status:      'SKIPPED',
+      description: `${expense.description} [SKIPPED${reason ? ': ' + reason : ''}]`,
+      amount:      0,
+    };
+    saveExpenses([...expenses, skipped]);
+    alert(`✅ ${expense.description} marked as skipped for ${month} ${year}`);
+  };
+
+  // ── Import preview ────────────────────────────────────────────────────────────
+  const [importDiff,         setImportDiff]         = useState(null);
+  const [importMeta,         setImportMeta]         = useState(null);
+  const [showImportPreview,  setShowImportPreview]  = useState(false);
+  const importFileRef = useRef(null);
+
+  const handleImportFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const parsed = await parseImportFile(file);
+      const diff   = computeImportDiff(parsed.expenses, expenses);
+      setImportMeta(parsed);
+      setImportDiff(diff);
+      setShowImportPreview(true);
+    } catch (err) {
+      alert('Error reading file: ' + err.message);
+    }
+    e.target.value = '';
+  };
+
+  const handleConfirmImport = ({ expenses: toImport, mergeCategories, mergePaymentTypes, newCats, newNonCats, newPay }) => {
+    // Merge expenses — updates replace existing by ID, new ones are appended
+    const existingIds = new Set(expenses.map(e => e.id));
+    const updates     = toImport.filter(e => existingIds.has(e.id));
+    const brandNew    = toImport.filter(e => !existingIds.has(e.id));
+    const merged      = expenses.map(e => {
+      const upd = updates.find(u => u.id === e.id);
+      return upd ? { ...e, ...upd } : e;
+    });
+    saveExpenses([...merged, ...brandNew]);
+
+    // Merge lookup lists if requested
+    if (mergeCategories) {
+      if (newCats.length)    saveCategories([...categories, ...newCats]);
+      if (newNonCats.length) saveNonRecurringCategories([...nonRecurringCategories, ...newNonCats]);
+    }
+    if (mergePaymentTypes && newPay.length) {
+      savePaymentTypes([...paymentTypes, ...newPay]);
+    }
+
+    setShowImportPreview(false);
+    alert(`✅ Imported ${toImport.length} expense${toImport.length !== 1 ? 's' : ''} successfully!`);
+  };
+
+  // ── Full backup export ────────────────────────────────────────────────────────
+  const handleFullBackupExport = () => {
+    exportFullBackup({ expenses, categories, nonRecurringCategories, paymentTypes });
+  };
+
+  // ── Auto-generate recurring ──────────────────────────────────────────────────
   useAutoRecurringExpenses(expenses, categories, saveExpenses);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div className="text-white text-xl">Loading...</div>
+    </div>
+  );
 
-  const availableYears = getAvailableYears(expenses);
-  const notifications = getPendingAndOverdueExpenses(expenses);
+  const availableYears  = getAvailableYears(expenses);
+  const notifications   = getPendingAndOverdueExpenses(expenses);
+
+  // Shared extra props for both expense tabs
+  const sharedTableProps = {
+    onBulkEdit:  handleOpenBulkEdit,
+    onSkipMonth: handleOpenSkipMonth,
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <Header />
+        <Header isDark={isDark} toggleTheme={toggleTheme} />
 
         {showBackupReminder && (
-          <BackupReminder
-            onBackupNow={handleBackupNow}
-            onDismiss={dismissBackupReminder}
-          />
+          <BackupReminder onBackupNow={handleBackupNow} onDismiss={dismissBackupReminder} />
         )}
 
-        <TabNavigation
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          notifications={notifications}
-        />
+        <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} notifications={notifications} />
 
+        {/* ── Summary ─────────────────────────────────────────────────────── */}
         {activeTab === 'summary' && (
           <Summary
             expenses={expenses}
@@ -222,11 +275,14 @@ const App = () => {
             getPendingAndOverdueExpenses={() => getPendingAndOverdueExpenses(expenses)}
             exportToJSON={() => exportToJSON(expenses)}
             exportToCSV={() => exportToCSV(expenses)}
+            exportFullBackup={handleFullBackupExport}
+            onImportClick={() => importFileRef.current?.click()}
             importFromJSON={(e) => importFromJSON(e, expenses, saveExpenses)}
             importFromCSV={(e) => importFromCSV(e, expenses, saveExpenses)}
           />
         )}
 
+        {/* ── Recurring ───────────────────────────────────────────────────── */}
         {activeTab === 'recurring' && (
           <RecurringExpenses
             expenses={expenses}
@@ -259,9 +315,11 @@ const App = () => {
             onSaveTemplate={() => setShowSaveTemplateModal(true)}
             onClearForm={() => resetRecurringForm('Recurring')}
             onCloneExpense={handleCloneExpense}
+            {...sharedTableProps}
           />
         )}
 
+        {/* ── Non-Recurring ───────────────────────────────────────────────── */}
         {activeTab === 'non-recurring' && (
           <NonRecurringExpenses
             expenses={expenses}
@@ -300,31 +358,70 @@ const App = () => {
             onSaveTemplate={() => setShowSaveTemplateModal(true)}
             onClearForm={() => resetNonRecurringForm('Non-Recurring')}
             onCloneExpense={handleCloneExpense}
+            {...sharedTableProps}
           />
         )}
 
         {activeTab === 'analytics' && (
-          <AdvancedAnalytics
-            expenses={expenses}
-            categories={categories}
-            nonRecurringCategories={nonRecurringCategories}
-          />
+          <AdvancedAnalytics expenses={expenses} categories={categories} nonRecurringCategories={nonRecurringCategories} onCategoryClick={handleCategoryClick} />
         )}
 
         {activeTab === 'visualizations' && (
-          <Visualizations
-            expenses={expenses}
-            filterYear={filterYear}
-            setFilterYear={setFilterYear}
-            availableYears={availableYears}
-          />
+          <Visualizations expenses={expenses} filterYear={filterYear} setFilterYear={setFilterYear} availableYears={availableYears} onCategoryClick={handleCategoryClick} />
         )}
 
+        {/* ── Modals ──────────────────────────────────────────────────────── */}
         <SaveTemplateModal
           isOpen={showSaveTemplateModal}
           onClose={() => setShowSaveTemplateModal(false)}
           onSave={handleSaveAsTemplate}
           currentFormData={activeFormData}
+        />
+
+        <BulkEditModal
+          isOpen={showBulkEditModal}
+          onClose={() => setShowBulkEditModal(false)}
+          selectedIds={bulkEditIds}
+          expenses={expenses}
+          categories={categories}
+          nonRecurringCategories={nonRecurringCategories}
+          paymentTypes={paymentTypes}
+          onApply={handleApplyBulkEdit}
+        />
+
+        <SkipMonthModal
+          isOpen={showSkipModal}
+          onClose={() => setShowSkipModal(false)}
+          expense={skipTarget}
+          onConfirmSkip={handleConfirmSkip}
+        />
+
+        <ImportPreviewModal
+          isOpen={showImportPreview}
+          onClose={() => setShowImportPreview(false)}
+          diff={importDiff}
+          importMeta={importMeta}
+          existingCategories={categories}
+          existingNonRecurringCategories={nonRecurringCategories}
+          existingPaymentTypes={paymentTypes}
+          onConfirm={handleConfirmImport}
+        />
+
+        {/* Hidden file input for preview-based import */}
+        <input
+          ref={importFileRef}
+          type="file"
+          accept=".json,.csv"
+          className="hidden"
+          onChange={handleImportFileChange}
+        />
+
+        <CategoryDrillDownModal
+          isOpen={showDrillDown}
+          onClose={() => setShowDrillDown(false)}
+          category={drillCategory}
+          expenses={expenses}
+          filterYear={filterYear}
         />
       </div>
     </div>
