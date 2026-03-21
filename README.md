@@ -1,16 +1,112 @@
-# React + Vite
+# 💸 Personal Expense Tracker
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> Built with React · Vite · Tailwind CSS · Chart.js · Frankfurter API · Claude / Gemini AI
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 📋 Expense Management
 
-## React Compiler
+- Recurring and Non-Recurring expense tabs
+- Add, edit, delete, and clone expenses
+- Inline status toggle — `PAID` / `PENDING` / `OVERDUE` / `SKIPPED`
+- Status-colored left border stripe on every row for quick scanning
+- Monthly group dividers with paid / pending / total subtotals
+- Detail drawer — expand any row to see full expense details
+- Note and receipt details field per expense
+- Auto-generated recurring expenses each month
+- Skip month for recurring expenses
+- Bulk edit and bulk delete selected expenses
+- Sub-transactions per expense with auto-summed total
+- Quick-add from month divider row
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🔍 Smart Search & Filters
 
-## Expanding the ESLint configuration
+- Natural language search — understands `>500`, `<100`, `pending march`, `travel 2026`
+- Search hint chips for common filters
+- Multi-select category filter chips
+- Date range filter
+- Sort by date, amount, or payment type
+- Paginated results
+- Filter by trip (Travel category)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🤖 AI Receipt Scanning
+
+- Scan a receipt photo to auto-fill the expense form
+- Supports Anthropic Claude and Google Gemini vision APIs
+- Extracts merchant, amount, date, category, payment type, and items
+- Mobile scan page at `/scan` — optimized for iPhone camera
+- QR code in header to open mobile scan page instantly
+- Relay server bridges phone to desktop tracker over local WiFi
+- Form auto-fills on desktop when phone scan completes
+
+## 📊 Analytics & Visualizations
+
+- Advanced Analytics tab with year selector
+- Year-over-Year spending comparison
+- Spending Forecast via linear regression
+- Spending Timeline — horizontal scrollable bar chart across all months
+- Spike detection — highlights months 150%+ above average
+- Month-over-Month breakdown table by category
+- Category Spending Patterns with trend badges
+- Monthly Totals — clickable bars drill into monthly breakdown
+- Monthly drill-down modal with transaction tables per category
+- Biggest Expense callout card
+- Summary tab with category totals, yearly totals, and overdue alerts
+- Pie, bar, and trend chart visualizations
+
+## ✈️ Currency & Travel
+
+- Live currency conversion via Frankfurter API
+- Foreign amount and exchange rate stored per expense
+- Trip tagging for Travel expenses
+- Trip filter chips in expense list
+- Category drill-down groups Travel expenses by trip
+
+## 📁 Templates, Import & Export
+
+- Save any expense as a reusable template
+- Favorite templates pinned to top
+- Quick-load templates with one click
+- Import from JSON or CSV with diff preview
+- Export filtered expenses to JSON or CSV
+- Full backup and restore
+
+## 🎨 UI & Experience
+
+- Light and dark mode toggle
+- Animated particle header
+- Paid By selector with grouped options
+- Manageable dropdowns — add and delete categories, payment types, and paid-by options inline
+- Overdue expense banner with one-click mark-all-paid
+- Backup reminder system
+- Responsive layout
+
+---
+
+## 🛠 Tech Stack
+
+| Layer | Tech |
+|---|---|
+| Frontend | React 18, Vite, Tailwind CSS |
+| Charts | Chart.js |
+| Currency | Frankfurter API |
+| AI Vision | Anthropic Claude / Google Gemini |
+| Storage | localStorage |
+
+## 🚀 Getting Started
+
+```bash
+# Install dependencies
+npm install
+
+# Add your API key to .env
+VITE_GEMINI_API_KEY=your-key-here
+# or
+VITE_ANTHROPIC_API_KEY=sk-ant-your-key-here
+
+# Start the app
+npm run dev
+
+# Start the mobile receipt relay (optional, for phone scanning)
+node scan-relay.js
+```
