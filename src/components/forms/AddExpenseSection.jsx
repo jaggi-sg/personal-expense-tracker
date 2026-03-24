@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Plus, ChevronDown, ChevronUp, Save, FileText, X } from 'lucide-react';
 import AddExpenseForm from './AddExpenseForm';
 import TemplateQuickLoad from './TemplateQuickLoad';
-import ReceiptScanner from './ReceiptScanner';
+import ReceiptScanner from '../scanner/ReceiptScanner';
 
 const AddExpenseSection = ({
   title,

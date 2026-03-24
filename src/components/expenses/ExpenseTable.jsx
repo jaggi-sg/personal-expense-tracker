@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Trash2, Download, CheckSquare, Square, Edit3, Plus, AlertTriangle, ChevronDown, ChevronUp, CheckCheck } from 'lucide-react';
 import ExpenseRow, { categoryColor } from './ExpenseRow';
-import { exportToJSON, exportToCSV } from '../utils/dataExport';
+import { exportToJSON, exportToCSV } from '../../utils/dataExport';
 
 // ── Pending / Overdue banner ──────────────────────────────────────────────────
 const OverdueBanner = ({ expenses, onStatusChange }) => {

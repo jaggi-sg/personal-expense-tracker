@@ -1,34 +1,41 @@
-// src/components/RecurringExpenses.jsx
+// src/components/NonRecurringExpenses.jsx
 
 import React, { useState } from 'react';
-import { useExpenseFilters } from '../hooks/useExpenseFilters';
-import { useFilterPresets } from '../hooks/useFilterPresets';
-import { applyAdvancedFilters } from '../utils/advancedFilterUtils';
-import { getFilterDescription } from '../utils/expenseHelpers';
+import { useExpenseFilters } from '../../hooks/useExpenseFilters';
+import { useFilterPresets } from '../../hooks/useFilterPresets';
+import { applyAdvancedFilters } from '../../utils/advancedFilterUtils';
+import { getFilterDescription } from '../../utils/expenseHelpers';
 import ExpenseListControls from './ExpenseListControls';
 import Pagination from './Pagination';
 import ExpenseTable from './ExpenseTable';
-import SummaryCards from './SummaryCards';
-import AddExpenseSection from './AddExpenseSection';
+import SummaryCards from '../analytics/SummaryCards';
+import AddExpenseSection from '../forms/AddExpenseSection';
+import SubTransactionManager from './SubTransactionManager';
 
-const RecurringExpenses = ({
+const NonRecurringExpenses = ({
   expenses,
-  categories,
+  nonRecurringCategories,
   formData,
   setFormData,
   handleAddExpense,
   deleteExpense,
   deleteAllExpenses,
-  editingExpense,
-  setEditingExpense,
-  saveEdit,
-  cancelEdit,
   showNewCategoryInput,
   setShowNewCategoryInput,
   newCategoryName,
   setNewCategoryName,
   handleAddCategory,
   onDeleteCategory,
+  showSubTransactions,
+  setShowSubTransactions,
+  subTransactions,
+  addSubTransaction,
+  updateSubTransaction,
+  removeSubTransaction,
+  editingExpense,
+  setEditingExpense,
+  saveEdit,
+  cancelEdit,
   paymentTypes,
   showNewPaymentTypeInput,
   setShowNewPaymentTypeInput,
@@ -53,13 +60,11 @@ const RecurringExpenses = ({
   onBulkEdit,
   onSkipMonth,
   onStatusChange,
+  onScanAddExpense,
 }) => {
-  const [searchCriteria, setSearchCriteria] = useState({});
+  const [searchCriteria, setSearchCriteria]       = useState({});
+  const [selectedTrip,   setSelectedTrip]         = useState('');
   const [expandedTransactions, setExpandedTransactions] = useState({});
-  const [selectedTrip, setSelectedTrip] = useState('');
-
-  const onToggleExpanded = (id) =>
-    setExpandedTransactions(prev => ({ ...prev, [id]: !prev[id] }));
   const { presets, addPreset, deletePreset, toggleFavorite } = useFilterPresets();
 
   const {
@@ -71,26 +76,29 @@ const RecurringExpenses = ({
     currentPage, setCurrentPage,
     filteredExpenses,
     filterMonth, filterYear, filterCategory,
-  } = useExpenseFilters(expenses, 'Recurring');
+  } = useExpenseFilters(expenses, 'Non-Recurring');
 
-  // Layer advanced criteria + trip filter on top
+  // Layer advanced criteria on top
   const hasAdvanced = Object.entries(searchCriteria).some(([, v]) => v && v !== '' && v !== 'All');
   const advFiltered = hasAdvanced ? applyAdvancedFilters(filteredExpenses || [], searchCriteria) : (filteredExpenses || []);
   const finalFiltered = selectedTrip
     ? advFiltered.filter(e => e.trip === selectedTrip)
     : advFiltered;
 
-  const itemsPerPage  = 10;
-  const totalPages    = Math.ceil(finalFiltered.length / itemsPerPage);
-  const startIndex    = (currentPage - 1) * itemsPerPage;
-  const endIndex      = Math.min(startIndex + itemsPerPage, finalFiltered.length);
-  const paginated     = finalFiltered.slice(startIndex, endIndex);
+  const itemsPerPage = 10;
+  const totalPages   = Math.ceil(finalFiltered.length / itemsPerPage);
+  const startIndex   = (currentPage - 1) * itemsPerPage;
+  const endIndex     = Math.min(startIndex + itemsPerPage, finalFiltered.length);
+  const paginated    = finalFiltered.slice(startIndex, endIndex);
 
-  const recurringList  = expenses.filter(e => e.type === 'Recurring');
-  const recurringTotal = recurringList.filter(e => e.status === 'PAID').reduce((s, e) => s + e.amount, 0);
-  const filteredTotal  = finalFiltered.filter(e => e.status === 'PAID').reduce((s, e) => s + e.amount, 0);
+  const nonRecurringList  = expenses.filter(e => e.type === 'Non-Recurring');
+  const nonRecurringTotal = nonRecurringList.filter(e => e.status === 'PAID').reduce((s, e) => s + e.amount, 0);
+  const filteredTotal     = finalFiltered.filter(e => e.status === 'PAID').reduce((s, e) => s + e.amount, 0);
 
-  const handleClearAll   = () => { clearAllFilters(); setSearchCriteria({}); setSelectedTrip(''); };
+  const toggleTransactions = (id) =>
+    setExpandedTransactions(prev => ({ ...prev, [id]: !prev[id] }));
+
+  const handleClearAll = () => { clearAllFilters(); setSearchCriteria({}); setSelectedTrip(''); };
   const handleBulkDelete = (ids) => ids.forEach(id => deleteExpense(id));
   const handleSavePreset = (name, criteria) => { addPreset(name, criteria); alert(`✅ Preset "${name}" saved!`); };
   const handleCategoryFilter = (cat) => toggleCategory(cat);
@@ -102,21 +110,17 @@ const RecurringExpenses = ({
       date,
       month: d.toLocaleString('default', { month: 'long', timeZone: 'UTC' }),
     }));
-    // Scroll to top so the add form is visible
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleLoadPreset = (criteria) => {
-    // Split preset criteria back into their respective state owners
     if (criteria.dateFrom)    setDateFrom(criteria.dateFrom);
     if (criteria.dateTo)      setDateTo(criteria.dateTo);
     if (criteria.quickSearch) setSearchQuery(criteria.quickSearch);
     if (criteria.categories)  {
-      // clear existing, then toggle each saved category on
       clearAllFilters();
       criteria.categories.split(',').forEach(c => c.trim() && toggleCategory(c.trim()));
     }
-    // Remaining keys go to advanced criteria
     const { dateFrom: _df, dateTo: _dt, categories: _cats, quickSearch: _qs, ...advanced } = criteria;
     setSearchCriteria(Object.keys(advanced).length ? advanced : {});
   };
@@ -124,19 +128,19 @@ const RecurringExpenses = ({
   return (
     <>
       <SummaryCards
-        totalAmount={recurringTotal}
-        totalEntries={recurringList.length}
+        totalAmount={nonRecurringTotal}
+        totalEntries={nonRecurringList.length}
         filteredTotal={filteredTotal}
         filterDescription={getFilterDescription(filterMonth, filterYear, filterCategory)}
-        type="Recurring"
+        type="Non-Recurring"
         expenses={expenses}
       />
 
       <AddExpenseSection
-        title="Add Recurring Expense"
+        title="Add Non-Recurring Expense"
         formData={formData}
         setFormData={setFormData}
-        categories={categories}
+        categories={nonRecurringCategories}
         paymentTypes={paymentTypes}
         showNewCategoryInput={showNewCategoryInput}
         setShowNewCategoryInput={setShowNewCategoryInput}
@@ -159,18 +163,30 @@ const RecurringExpenses = ({
         handleAddExpense={handleAddExpense}
         showAmountField={true}
         amountRequired={true}
-        amountDisabled={false}
+        amountDisabled={showSubTransactions}
+        subTransactionComponent={
+          <SubTransactionManager
+            showSubTransactions={showSubTransactions}
+            setShowSubTransactions={setShowSubTransactions}
+            subTransactions={subTransactions}
+            addSubTransaction={addSubTransaction}
+            updateSubTransaction={updateSubTransaction}
+            removeSubTransaction={removeSubTransaction}
+            totalAmount={formData.amount}
+          />
+        }
         templates={templates}
         onLoadTemplate={onLoadTemplate}
         onDeleteTemplate={onDeleteTemplate}
         onToggleFavorite={onToggleFavorite}
         onSaveTemplate={onSaveTemplate}
         onClearForm={onClearForm}
-        expenseType="Recurring"
+        onScanAddExpense={onScanAddExpense}
+        expenseType="Non-Recurring"
       />
 
       <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-        <h2 className="text-2xl font-bold text-white mb-4">Recurring Expense List</h2>
+        <h2 className="text-2xl font-bold text-white mb-4">Non-Recurring Expense List</h2>
 
         <ExpenseListControls
           dateFrom={dateFrom}             setDateFrom={setDateFrom}
@@ -178,7 +194,7 @@ const RecurringExpenses = ({
           selectedCategories={selectedCategories}
           toggleCategory={toggleCategory}
           clearAllFilters={handleClearAll}
-          categories={categories}
+          categories={nonRecurringCategories}
           paymentTypes={paymentTypes}
           searchQuery={searchQuery}       setSearchQuery={setSearchQuery}
           sortBy={sortBy}                 setSortBy={setSortBy}
@@ -187,8 +203,8 @@ const RecurringExpenses = ({
           onLoadPreset={handleLoadPreset}
           onSavePreset={handleSavePreset}
           onDeletePreset={deletePreset}
-          hasExpenses={recurringList.length > 0}
-          onDeleteAll={() => deleteAllExpenses('Recurring')}
+          hasExpenses={nonRecurringList.length > 0}
+          onDeleteAll={() => deleteAllExpenses('Non-Recurring')}
           filteredCount={finalFiltered.length}
           filteredExpenses={finalFiltered}
           trips={trips}
@@ -213,12 +229,12 @@ const RecurringExpenses = ({
           saveEdit={saveEdit}
           cancelEdit={cancelEdit}
           deleteExpense={deleteExpense}
-          categories={categories}
+          categories={nonRecurringCategories}
           paymentTypes={paymentTypes}
           searchQuery={searchQuery}
-          hasSubTransactions={false}
+          hasSubTransactions={true}
           expandedTransactions={expandedTransactions}
-          onToggleExpanded={onToggleExpanded}
+          onToggleExpanded={toggleTransactions}
           onClone={onCloneExpense}
           onBulkDelete={handleBulkDelete}
           onBulkEdit={onBulkEdit}
@@ -242,4 +258,4 @@ const RecurringExpenses = ({
   );
 };
 
-export default RecurringExpenses;
+export default NonRecurringExpenses;

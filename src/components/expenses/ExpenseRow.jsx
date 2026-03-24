@@ -6,8 +6,8 @@ import {
   Copy, Globe, SkipForward, CheckSquare, Square, MoreHorizontal,
   CreditCard, User, Receipt, FileText,
 } from 'lucide-react';
-import CurrencyInput from './CurrencyInput';
-import { TRAVEL_CURRENCIES } from '../hooks/useCurrencyConverter';
+import CurrencyInput from '../forms/CurrencyInput';
+import { TRAVEL_CURRENCIES } from '../../hooks/useCurrencyConverter';
 import {
   STATUS_STYLES, STATUS_BORDER, STATUS_CYCLE,
   InlineStatusBadge, FxBadge, ActionMenuWrapper,

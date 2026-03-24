@@ -1,20 +1,20 @@
 // src/App.jsx
 
 import React, { useState, useRef, useCallback } from 'react';
-import AdvancedAnalytics from './components/AdvancedAnalytics';
-import Summary from './components/Summary';
-import RecurringExpenses from './components/RecurringExpenses';
-import NonRecurringExpenses from './components/NonRecurringExpenses';
-import Visualizations from './components/Visualizations';
-import Header from './components/Header';
-import TabNavigation from './components/TabNavigation';
-import BackupReminder from './components/BackupReminder';
-import SaveTemplateModal from './components/SaveTemplateModal';
-import ImportPreviewModal from './components/ImportPreviewModal';
-import BulkEditModal from './components/BulkEditModal';
-import SkipMonthModal from './components/SkipMonthModal';
-import CategoryDrillDownModal from './components/CategoryDrillDownModal';
-import QRScanModal from './components/QRScanModal';
+import AdvancedAnalytics from './components/analytics/AdvancedAnalytics';
+import Summary from './components/analytics/Summary';
+import RecurringExpenses from './components/expenses/RecurringExpenses';
+import NonRecurringExpenses from './components/expenses/NonRecurringExpenses';
+import Visualizations from './components/analytics/Visualizations';
+import Header from './components/layout/Header';
+import TabNavigation from './components/layout/TabNavigation';
+import BackupReminder from './components/layout/BackupReminder';
+import SaveTemplateModal from './components/forms/SaveTemplateModal';
+import ImportPreviewModal from './components/modals/ImportPreviewModal';
+import BulkEditModal from './components/expenses/BulkEditModal';
+import SkipMonthModal from './components/expenses/SkipMonthModal';
+import CategoryDrillDownModal from './components/analytics/CategoryDrillDownModal';
+import QRScanModal from './components/scanner/QRScanModal';
 import { useTheme } from './hooks/useTheme';
 import { useExpenseTemplates } from './hooks/useExpenseTemplates';
 import { useExpenseData } from './hooks/useExpenseData';

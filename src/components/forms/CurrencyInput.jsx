@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Globe, RefreshCw, CheckCircle, AlertCircle, ChevronDown, X, Database } from 'lucide-react';
-import { useCurrencyConverter, TRAVEL_CURRENCIES } from '../hooks/useCurrencyConverter';
+import { useCurrencyConverter, TRAVEL_CURRENCIES } from '../../hooks/useCurrencyConverter';
 
 // ── Currency selector dropdown ────────────────────────────────────────────────
 const CurrencySelector = ({ value, onChange }) => {

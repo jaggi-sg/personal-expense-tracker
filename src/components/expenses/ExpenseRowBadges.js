@@ -6,7 +6,7 @@ import {
   Check, Edit2, Copy, SkipForward, Trash2, MoreHorizontal,
   Globe,
 } from 'lucide-react';
-import { TRAVEL_CURRENCIES } from '../hooks/useCurrencyConverter';
+import { TRAVEL_CURRENCIES } from '../../hooks/useCurrencyConverter';
 
 const e = React.createElement;
 

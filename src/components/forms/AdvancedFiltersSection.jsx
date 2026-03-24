@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Filter, ChevronDown, ChevronUp, X } from 'lucide-react';
 import AdvancedSearchBar from './AdvancedSearchBar';
 import FilterPresets from './FilterPresets';
-import QuickFilterChips from './QuickFilterChips';
+import QuickFilterChips from '../expenses/QuickFilterChips';
 
 const AdvancedFiltersSection = ({
   searchCriteria,
