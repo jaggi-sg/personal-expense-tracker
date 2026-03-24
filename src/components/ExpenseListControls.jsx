@@ -138,7 +138,11 @@ const ExpenseListControls = ({
   presets = [], onLoadPreset, onSavePreset, onDeletePreset,
   // Counts & actions
   filteredCount = 0,
+  filteredExpenses = [],
   hasExpenses, onDeleteAll,
+  // Trips (Travel only)
+  trips = [],
+  selectedTrip = '', setSelectedTrip,
 }) => {
   const [expanded, setExpanded]         = useState(false);
   const [activeQuick, setActiveQuick]   = useState(null);
@@ -188,25 +192,6 @@ const ExpenseListControls = ({
 
       {/* ── Always-visible top row ─────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-2 mb-2">
-
-        {/* Search */}
-        <div className="relative flex-1 min-w-[160px] max-w-xs">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-purple-400 pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Search description..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className={`${inp} pl-8 pr-8 w-full`}
-          />
-          {searchQuery && (
-            <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-purple-400 hover:text-white">
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
-
-        {/* Filters toggle */}
         <button
           onClick={() => setExpanded(e => !e)}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border transition-all
@@ -268,6 +253,36 @@ const ExpenseListControls = ({
       {/* ── Collapsible filter panel ───────────────────────────────────────── */}
       {expanded && (
         <div className="bg-white/5 border border-white/15 rounded-xl p-4 space-y-4 mb-3">
+
+          {/* Row 0: Smart Search */}
+          <div className="space-y-1.5">
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-purple-400 pointer-events-none" />
+              <input
+                type="text"
+                placeholder='Search: "netflix", ">500", "pending march", "travel 2026"'
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className={`${inp} pl-8 pr-8 w-full`}
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-purple-400 hover:text-white">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            {/* Smart search hint chips */}
+            {!searchQuery && (
+              <div className="flex flex-wrap gap-1.5">
+                {['>500', '<100', 'pending', 'overdue', 'march', new Date().getFullYear().toString()].map(hint => (
+                  <button key={hint} onClick={() => setSearchQuery(hint)}
+                    className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-purple-500 hover:text-purple-300 hover:border-purple-500/40 transition-all">
+                    {hint}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Row 1: Date range + category multi-select + status + amount */}
           <div className="flex flex-wrap gap-3 items-center">
@@ -344,6 +359,32 @@ const ExpenseListControls = ({
             )}
           </div>
 
+          {/* Trip filter — only shown when Travel category is selected */}
+          {selectedCategories.includes('Travel') && trips.length > 0 && setSelectedTrip && (
+            <div className="flex flex-wrap gap-2 items-center border-t border-white/10 pt-3">
+              <span className="text-purple-500 text-xs flex items-center gap-1 shrink-0">
+                <span>✈️</span> Trip:
+              </span>
+              <button
+                onClick={() => setSelectedTrip('')}
+                className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-all
+                  ${!selectedTrip ? 'bg-violet-500 border-violet-400 text-white' : 'bg-white/8 border-white/20 text-purple-300 hover:bg-white/15 hover:text-white'}`}
+              >
+                All trips
+              </button>
+              {trips.map(t => (
+                <button key={t}
+                  onClick={() => setSelectedTrip(selectedTrip === t ? '' : t)}
+                  className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-all
+                    ${selectedTrip === t ? 'bg-violet-500 border-violet-400 text-white' : 'bg-white/8 border-white/20 text-purple-300 hover:bg-white/15 hover:text-white'}`}
+                >
+                  ✈️ {t}
+                  {selectedTrip === t && <X className="w-3 h-3 inline ml-1.5 -mt-0.5" />}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Row 2: Quick date chips */}
           <div className="flex flex-wrap gap-2 items-center">
             <span className="text-purple-500 text-xs flex items-center gap-1 shrink-0">
@@ -410,6 +451,39 @@ const ExpenseListControls = ({
               </div>
             )}
           </div>
+
+          {/* Row 4: Filtered total summary */}
+          {(() => {
+            const paid    = filteredExpenses.filter(e => e.status === 'PAID');
+            const pending = filteredExpenses.filter(e => e.status === 'PENDING' || e.status === 'OVERDUE');
+            const paidAmt  = paid.reduce((s, e) => s + e.amount, 0);
+            const pendAmt  = pending.reduce((s, e) => s + e.amount, 0);
+            const totalAmt = filteredExpenses.reduce((s, e) => s + e.amount, 0);
+            return (
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-white/10 pt-3">
+                <span className="text-purple-500 text-xs font-semibold uppercase tracking-wide shrink-0">
+                  Filtered total
+                </span>
+                <span className="text-xs text-purple-300">
+                  <span className="text-white font-semibold">{filteredExpenses.length}</span> expenses
+                </span>
+                <span className="text-xs">
+                  <span className="text-green-400 font-semibold">${paidAmt.toFixed(2)}</span>
+                  <span className="text-purple-500 ml-1">paid</span>
+                </span>
+                {pendAmt > 0 && (
+                  <span className="text-xs">
+                    <span className="text-orange-400 font-semibold">${pendAmt.toFixed(2)}</span>
+                    <span className="text-purple-500 ml-1">pending/overdue</span>
+                  </span>
+                )}
+                <span className="text-xs">
+                  <span className="text-white font-bold">${totalAmt.toFixed(2)}</span>
+                  <span className="text-purple-500 ml-1">total</span>
+                </span>
+              </div>
+            );
+          })()}
         </div>
       )}
 

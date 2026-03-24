@@ -61,7 +61,7 @@ const DonutLegend = ({ data, total, colors, onCategoryClick }) => (
       return (
         <div
           key={cat}
-          onClick={() => onCategoryClick?.(cat)}
+          onClick={() => onCategoryClick?.(cat, filterYear)}
           className={`flex items-center gap-2 group rounded-lg px-1.5 py-1 -mx-1.5 transition-colors
             ${onCategoryClick ? 'cursor-pointer hover:bg-white/10' : ''}`}
         >

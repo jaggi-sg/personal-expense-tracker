@@ -1,6 +1,6 @@
 // src/App.jsx
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import AdvancedAnalytics from './components/AdvancedAnalytics';
 import Summary from './components/Summary';
 import RecurringExpenses from './components/RecurringExpenses';
@@ -14,6 +14,7 @@ import ImportPreviewModal from './components/ImportPreviewModal';
 import BulkEditModal from './components/BulkEditModal';
 import SkipMonthModal from './components/SkipMonthModal';
 import CategoryDrillDownModal from './components/CategoryDrillDownModal';
+import QRScanModal from './components/QRScanModal';
 import { useTheme } from './hooks/useTheme';
 import { useExpenseTemplates } from './hooks/useExpenseTemplates';
 import { useExpenseData } from './hooks/useExpenseData';
@@ -21,6 +22,7 @@ import { useExpenseForm } from './hooks/useExpenseForm';
 import { useExpenseActions } from './hooks/useExpenseActions';
 import { useBackupReminder } from './hooks/useBackupReminder';
 import { useAutoRecurringExpenses } from './hooks/useAutoRecurringExpenses';
+import { useReceiptSync } from './hooks/useReceiptSync';
 import {
   exportToJSON, exportToCSV,
   exportFullBackup,
@@ -32,24 +34,28 @@ import { getAvailableYears, getCategorySummary, getYearlyTotal, getPendingAndOve
 const App = () => {
   const [activeTab,   setActiveTab]   = useState('summary');
   const [filterYear,  setFilterYear]  = useState('All');
+  const [showQR,      setShowQR]      = useState(false);
 
   // ── Theme ────────────────────────────────────────────────────────────────────
   const { isDark, toggleTheme } = useTheme();
 
   // ── Category drill-down ──────────────────────────────────────────────────────
-  const [drillCategory,    setDrillCategory]    = useState(null);
-  const [showDrillDown,    setShowDrillDown]    = useState(false);
+  const [drillCategory, setDrillCategory] = useState(null);
+  const [drillYear,     setDrillYear]     = useState('All');
+  const [showDrillDown, setShowDrillDown] = useState(false);
 
-  const handleCategoryClick = (category) => {
+  const handleCategoryClick = (category, year = 'All') => {
     setDrillCategory(category);
+    setDrillYear(year);
     setShowDrillDown(true);
   };
 
   // ── Data ────────────────────────────────────────────────────────────────────
   const {
     expenses, loading,
-    categories, nonRecurringCategories, paymentTypes,
-    saveExpenses, saveCategories, saveNonRecurringCategories, savePaymentTypes,
+    categories, nonRecurringCategories, paymentTypes, paidByOptions, trips,
+    saveExpenses, saveCategories, saveNonRecurringCategories,
+    savePaymentTypes, savePaidByOptions, saveTrips,
   } = useExpenseData();
 
   // ── Forms (separate state per tab) ──────────────────────────────────────────
@@ -83,16 +89,35 @@ const App = () => {
 
   const activeFormData = activeTab === 'recurring' ? recurringFormData : nonRecurringFormData;
 
+  // ── Receipt sync from mobile scanner ─────────────────────────────────────────
+  // ── Receipt sync from mobile scanner ─────────────────────────────────────────
+  const [receiptSyncToast, setReceiptSyncToast] = useState(false);
+
+  const handleReceiptSync = useCallback((data) => {
+    console.log('[App] handleReceiptSync called with:', data);
+    setNonRecurringFormData(prev => ({ ...prev, ...data }));
+    setActiveTab('non-recurring');
+    setReceiptSyncToast(true);
+    setTimeout(() => setReceiptSyncToast(false), 4000);
+  }, [setNonRecurringFormData, setActiveTab]);
+
+  useReceiptSync(handleReceiptSync);
+
   // ── Actions ──────────────────────────────────────────────────────────────────
   const {
     editingExpense, setEditingExpense,
-    handleAddCategory, handleAddPaymentType,
+    handleAddCategory, handleDeleteCategory,
+    handleAddPaymentType,
+    handleAddPaidBy, handleDeletePaidBy,
+    handleAddTrip, handleDeleteTrip,
     handleAddExpense, deleteExpense, saveEdit, cancelEdit, deleteAllExpenses,
   } = useExpenseActions(
     expenses, saveExpenses,
     categories, nonRecurringCategories,
     saveCategories, saveNonRecurringCategories,
     paymentTypes, savePaymentTypes,
+    paidByOptions, savePaidByOptions,
+    trips, saveTrips,
     activeTab,
   );
 
@@ -139,6 +164,11 @@ const App = () => {
       month: new Date().toLocaleString('default', { month: 'long', timeZone: 'UTC' }),
     }]);
     alert('✅ Expense cloned with today\'s date!');
+  };
+
+  // ── Inline status change ─────────────────────────────────────────────────────
+  const handleStatusChange = (id, newStatus) => {
+    saveExpenses(expenses.map(e => e.id === id ? { ...e, status: newStatus } : e));
   };
 
   // ── Bulk edit ────────────────────────────────────────────────────────────────
@@ -246,14 +276,15 @@ const App = () => {
 
   // Shared extra props for both expense tabs
   const sharedTableProps = {
-    onBulkEdit:  handleOpenBulkEdit,
-    onSkipMonth: handleOpenSkipMonth,
+    onBulkEdit:     handleOpenBulkEdit,
+    onSkipMonth:    handleOpenSkipMonth,
+    onStatusChange: handleStatusChange,
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 md:p-8">
+    <div className={`min-h-screen p-4 md:p-8 ${isDark ? 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900' : 'bg-gradient-to-br from-slate-100 via-violet-100 to-purple-100'}`}>
       <div className="max-w-7xl mx-auto">
-        <Header isDark={isDark} toggleTheme={toggleTheme} />
+        <Header isDark={isDark} toggleTheme={toggleTheme} onOpenQR={() => setShowQR(true)} />
 
         {showBackupReminder && (
           <BackupReminder onBackupNow={handleBackupNow} onDismiss={dismissBackupReminder} />
@@ -301,12 +332,20 @@ const App = () => {
             newCategoryName={recurringNewCategoryName}
             setNewCategoryName={recurringSetNewCategoryName}
             handleAddCategory={() => handleAddCategory(recurringNewCategoryName, recurringSetNewCategoryName, recurringSetShowNewCategoryInput)}
+            onDeleteCategory={handleDeleteCategory}
             paymentTypes={paymentTypes}
             showNewPaymentTypeInput={recurringShowNewPaymentTypeInput}
             setShowNewPaymentTypeInput={recurringSetShowNewPaymentTypeInput}
             newPaymentTypeName={recurringNewPaymentTypeName}
             setNewPaymentTypeName={recurringSetNewPaymentTypeName}
             handleAddPaymentType={() => handleAddPaymentType(recurringNewPaymentTypeName, recurringSetNewPaymentTypeName, recurringSetShowNewPaymentTypeInput)}
+            onDeletePaymentType={(t) => savePaymentTypes(paymentTypes.filter(p => p !== t))}
+            paidByOptions={paidByOptions}
+            onAddPaidBy={handleAddPaidBy}
+            onDeletePaidBy={handleDeletePaidBy}
+            trips={trips}
+            onAddTrip={handleAddTrip}
+            onDeleteTrip={handleDeleteTrip}
             availableYears={availableYears}
             templates={templates}
             onLoadTemplate={handleLoadTemplate}
@@ -319,7 +358,8 @@ const App = () => {
           />
         )}
 
-        {/* ── Non-Recurring ───────────────────────────────────────────────── */}
+
+        {/* ── Non-Recurring ───────────────────────────────────────────────────── */}
         {activeTab === 'non-recurring' && (
           <NonRecurringExpenses
             expenses={expenses}
@@ -327,6 +367,22 @@ const App = () => {
             formData={nonRecurringFormData}
             setFormData={setNonRecurringFormData}
             handleAddExpense={() => handleAddExpense(nonRecurringFormData, nonRecurringSubTransactions, resetNonRecurringForm)}
+            onScanAddExpense={(data) => {
+              const expense = {
+                id: Date.now().toString(),
+                type: 'Non-Recurring',
+                description: data.description || '',
+                amount: parseFloat(data.amount) || 0,
+                date: data.date || new Date().toISOString().split('T')[0],
+                month: data.month || '',
+                category: data.category || '',
+                paymentType: data.paymentType || '',
+                by: data.by || '',
+                note: data.note || '',
+                status: data.status || 'PAID',
+              };
+              saveExpenses([...expenses, expense]);
+            }}
             deleteExpense={deleteExpense}
             deleteAllExpenses={deleteAllExpenses}
             showNewCategoryInput={nonRecurringShowNewCategoryInput}
@@ -334,6 +390,7 @@ const App = () => {
             newCategoryName={nonRecurringNewCategoryName}
             setNewCategoryName={nonRecurringSetNewCategoryName}
             handleAddCategory={() => handleAddCategory(nonRecurringNewCategoryName, nonRecurringSetNewCategoryName, nonRecurringSetShowNewCategoryInput)}
+            onDeleteCategory={handleDeleteCategory}
             showSubTransactions={nonRecurringShowSubTransactions}
             setShowSubTransactions={nonRecurringSetShowSubTransactions}
             subTransactions={nonRecurringSubTransactions}
@@ -350,6 +407,13 @@ const App = () => {
             newPaymentTypeName={nonRecurringNewPaymentTypeName}
             setNewPaymentTypeName={nonRecurringSetNewPaymentTypeName}
             handleAddPaymentType={() => handleAddPaymentType(nonRecurringNewPaymentTypeName, nonRecurringSetNewPaymentTypeName, nonRecurringSetShowNewPaymentTypeInput)}
+            onDeletePaymentType={(t) => savePaymentTypes(paymentTypes.filter(p => p !== t))}
+            paidByOptions={paidByOptions}
+            onAddPaidBy={handleAddPaidBy}
+            onDeletePaidBy={handleDeletePaidBy}
+            trips={trips}
+            onAddTrip={handleAddTrip}
+            onDeleteTrip={handleDeleteTrip}
             availableYears={availableYears}
             templates={templates}
             onLoadTemplate={handleLoadTemplate}
@@ -421,8 +485,23 @@ const App = () => {
           onClose={() => setShowDrillDown(false)}
           category={drillCategory}
           expenses={expenses}
-          filterYear={filterYear}
+          filterYear={drillYear}
         />
+
+        {/* QR code modal for mobile scanning */}
+        {showQR && <QRScanModal onClose={() => setShowQR(false)} />}
+
+        {/* Receipt sync toast notification */}
+        {receiptSyncToast && (
+          <div className="fixed bottom-6 left-1/2 z-50 pointer-events-none"
+            style={{ transform: 'translateX(-50%)' }}>
+            <div className="bg-emerald-500 text-white font-semibold text-sm px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2">
+              <span>Receipt synced from phone</span>
+              <span>Check the Non-Recurring form</span>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Plus, ChevronDown, ChevronUp, Save, FileText, X } from 'lucide-react';
 import AddExpenseForm from './AddExpenseForm';
 import TemplateQuickLoad from './TemplateQuickLoad';
+import ReceiptScanner from './ReceiptScanner';
 
 const AddExpenseSection = ({
   title,
@@ -16,11 +17,19 @@ const AddExpenseSection = ({
   newCategoryName,
   setNewCategoryName,
   handleAddCategory,
+  onDeleteCategory,
   showNewPaymentTypeInput,
   setShowNewPaymentTypeInput,
   newPaymentTypeName,
   setNewPaymentTypeName,
   handleAddPaymentType,
+  onDeletePaymentType,
+  paidByOptions = [],
+  onAddPaidBy,
+  onDeletePaidBy,
+  trips = [],
+  onAddTrip,
+  onDeleteTrip,
   handleAddExpense,
   showAmountField = true,
   amountRequired = false,
@@ -35,6 +44,7 @@ const AddExpenseSection = ({
   expenseType = 'Recurring',
   // Clear form
   onClearForm,
+  onScanAddExpense,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -86,7 +96,17 @@ const AddExpenseSection = ({
               <FileText className="w-5 h-5 text-blue-400" />
               <span className="text-white font-semibold">Template Actions</span>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap justify-end">
+              {/* Receipt Scanner */}
+              <ReceiptScanner
+                categories={categories}
+                paymentTypes={paymentTypes}
+                paidByOptions={paidByOptions}
+                onExtracted={(data) => {
+                  setFormData(prev => ({ ...prev, ...data }));
+                }}
+                onAddExpense={onScanAddExpense}
+              />
               {/* Clear Form Button */}
               {hasFormData && (
                 <button
@@ -125,16 +145,24 @@ const AddExpenseSection = ({
             setFormData={setFormData}
             categories={categories}
             paymentTypes={paymentTypes}
+            paidByOptions={paidByOptions}
             showNewCategoryInput={showNewCategoryInput}
             setShowNewCategoryInput={setShowNewCategoryInput}
             newCategoryName={newCategoryName}
             setNewCategoryName={setNewCategoryName}
             handleAddCategory={handleAddCategory}
+            onDeleteCategory={onDeleteCategory}
             showNewPaymentTypeInput={showNewPaymentTypeInput}
             setShowNewPaymentTypeInput={setShowNewPaymentTypeInput}
             newPaymentTypeName={newPaymentTypeName}
             setNewPaymentTypeName={setNewPaymentTypeName}
             handleAddPaymentType={handleAddPaymentType}
+            onDeletePaymentType={onDeletePaymentType}
+            onAddPaidBy={onAddPaidBy}
+            onDeletePaidBy={onDeletePaidBy}
+            trips={trips}
+            onAddTrip={onAddTrip}
+            onDeleteTrip={onDeleteTrip}
             handleAddExpense={handleAddExpense}
             showAmountField={showAmountField}
             amountRequired={amountRequired}

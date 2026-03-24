@@ -1,6 +1,7 @@
 // src/hooks/useExpenseFilters.js
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { parseSmartSearch, applySmartSearch } from '../utils/smartSearch';
 
 export const useExpenseFilters = (expenses, type) => {
   const [dateFrom, setDateFrom]                     = useState('');
@@ -11,19 +12,15 @@ export const useExpenseFilters = (expenses, type) => {
   const [currentPage, setCurrentPage]               = useState(1);
   const itemsPerPage = 10;
 
-  const filteredExpenses = expenses
-    .filter(exp => exp.type === type)
-    .filter(exp => {
-      // Date range
-      if (dateFrom && new Date(exp.date + 'T00:00:00Z') < new Date(dateFrom + 'T00:00:00Z')) return false;
-      if (dateTo   && new Date(exp.date + 'T00:00:00Z') > new Date(dateTo   + 'T00:00:00Z')) return false;
-      // Multi-select categories
-      if (selectedCategories.length > 0 && !selectedCategories.includes(exp.category)) return false;
-      // Text search
-      if (searchQuery && !exp.description?.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-      return true;
-    })
-    .sort((a, b) => {
+  const parsedSearch = useMemo(() => parseSmartSearch(searchQuery), [searchQuery]);
+
+  const filteredExpenses = useMemo(() => {
+    let list = expenses.filter(exp => exp.type === type);
+    if (dateFrom) list = list.filter(e => new Date(e.date + 'T00:00:00Z') >= new Date(dateFrom + 'T00:00:00Z'));
+    if (dateTo)   list = list.filter(e => new Date(e.date + 'T00:00:00Z') <= new Date(dateTo   + 'T00:00:00Z'));
+    if (selectedCategories.length > 0) list = list.filter(e => selectedCategories.includes(e.category));
+    if (parsedSearch) list = applySmartSearch(list, parsedSearch);
+    return [...list].sort((a, b) => {
       switch (sortBy) {
         case 'date-asc':     return new Date(a.date) - new Date(b.date);
         case 'amount-desc':  return b.amount - a.amount;
@@ -33,6 +30,7 @@ export const useExpenseFilters = (expenses, type) => {
         default:             return new Date(b.date) - new Date(a.date);
       }
     });
+  }, [expenses, type, dateFrom, dateTo, selectedCategories, parsedSearch, sortBy]);
 
   const totalPages        = Math.ceil(filteredExpenses.length / itemsPerPage);
   const startIndex        = (currentPage - 1) * itemsPerPage;
@@ -47,37 +45,23 @@ export const useExpenseFilters = (expenses, type) => {
     );
 
   const clearAllFilters = () => {
-    setDateFrom('');
-    setDateTo('');
-    setSelectedCategories([]);
-    setSearchQuery('');
+    setDateFrom(''); setDateTo(''); setSelectedCategories([]); setSearchQuery('');
   };
 
-  // ── Legacy aliases so existing callers (getFilterDescription, SummaryCards) still compile ──
   const filterMonth    = 'All';
   const filterYear     = 'All';
   const filterCategory = selectedCategories.length === 1 ? selectedCategories[0] : 'All';
 
   return {
-    // New
-    dateFrom, setDateFrom,
-    dateTo, setDateTo,
+    dateFrom, setDateFrom, dateTo, setDateTo,
     selectedCategories, setSelectedCategories, toggleCategory,
     clearAllFilters,
-    // Existing (unchanged shape)
-    searchQuery, setSearchQuery,
+    searchQuery, setSearchQuery, parsedSearch,
     sortBy, setSortBy,
     currentPage, setCurrentPage,
-    filteredExpenses,
-    paginatedExpenses,
-    totalPages,
-    startIndex,
-    endIndex,
-    itemsPerPage,
-    // Legacy no-ops / aliases
+    filteredExpenses, paginatedExpenses,
+    totalPages, startIndex, endIndex, itemsPerPage,
     filterMonth, filterYear, filterCategory,
-    setFilterMonth:    () => {},
-    setFilterYear:     () => {},
-    setFilterCategory: () => {},
+    setFilterMonth: () => {}, setFilterYear: () => {}, setFilterCategory: () => {},
   };
 };

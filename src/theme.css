@@ -1,92 +1,173 @@
-/* src/theme.css  — import this in main.jsx or index.css */
+/* src/theme.css — import in main.jsx or index.css */
 
 /* ── Dark (default) ────────────────────────────────────────────────────────── */
-:root,
-:root.dark {
-  --bg-base:        #0f172a;   /* slate-900 */
-  --bg-mid:         #4c1d95;   /* purple-900 */
-  --bg-surface:     rgba(255,255,255,0.10);
-  --bg-surface-hover: rgba(255,255,255,0.15);
-  --border:         rgba(255,255,255,0.15);
-  --text-primary:   #ffffff;
-  --text-secondary: #c4b5fd;   /* purple-300 */
-  --text-muted:     #7c3aed;   /* purple-600 */
-  --input-bg:       rgba(255,255,255,0.10);
-  --input-border:   rgba(255,255,255,0.20);
+:root, :root.dark { color-scheme: dark; }
 
-  color-scheme: dark;
-}
+/* ── Light mode overrides ───────────────────────────────────────────────────── */
 
-/* ── Light ─────────────────────────────────────────────────────────────────── */
-:root.light {
-  --bg-base:        #f1f5f9;   /* slate-100 */
-  --bg-mid:         #ede9fe;   /* violet-100 */
-  --bg-surface:     rgba(255,255,255,0.80);
-  --bg-surface-hover: rgba(255,255,255,0.95);
-  --border:         rgba(109,40,217,0.20);
-  --text-primary:   #1e1b4b;   /* indigo-950 */
-  --text-secondary: #6d28d9;   /* violet-700 */
-  --text-muted:     #a78bfa;   /* violet-400 */
-  --input-bg:       rgba(255,255,255,0.90);
-  --input-border:   rgba(109,40,217,0.30);
-
-  color-scheme: light;
-}
-
-/* ── App background switches with theme ────────────────────────────────────── */
+/* Background */
 :root.light body,
 :root.light #root {
   background: linear-gradient(135deg, #f1f5f9 0%, #ede9fe 50%, #ddd6fe 100%);
   min-height: 100vh;
+  color-scheme: light;
 }
 
-/* ── Tailwind bg-white/10 override for light mode ──────────────────────────── */
-:root.light .bg-white\/10 {
-  background-color: rgba(255,255,255,0.75) !important;
-  backdrop-filter: blur(12px);
-}
-:root.light .bg-white\/20 {
-  background-color: rgba(255,255,255,0.90) !important;
-}
-:root.light .border-white\/20 {
-  border-color: rgba(109,40,217,0.20) !important;
-}
-:root.light .border-white\/15 {
-  border-color: rgba(109,40,217,0.15) !important;
-}
-:root.light .text-white {
-  color: #1e1b4b !important;
-}
-:root.light .text-purple-200 {
-  color: #6d28d9 !important;
-}
-:root.light .text-purple-300 {
-  color: #7c3aed !important;
-}
-:root.light .text-purple-400 {
-  color: #8b5cf6 !important;
-}
-:root.light .text-purple-500 {
-  color: #a78bfa !important;
-}
-:root.light .bg-slate-900 {
-  background-color: #f8fafc !important;
-}
-:root.light .bg-slate-900\/95 {
-  background-color: rgba(248,250,252,0.95) !important;
-}
-:root.light .bg-white\/5 {
-  background-color: rgba(255,255,255,0.60) !important;
-}
+/* Surfaces */
+:root.light .bg-white\/10  { background-color: rgba(255,255,255,0.80) !important; }
+:root.light .bg-white\/15  { background-color: rgba(255,255,255,0.85) !important; }
+:root.light .bg-white\/20  { background-color: rgba(255,255,255,0.92) !important; }
+:root.light .bg-white\/5   { background-color: rgba(255,255,255,0.65) !important; }
+:root.light .bg-white\/8   { background-color: rgba(255,255,255,0.70) !important; }
+:root.light .bg-white\/\[0\.03\] { background-color: rgba(109,40,217,0.03) !important; }
+
+/* Slate backgrounds (table headers, dropdowns, sticky rows) */
+:root.light .bg-slate-900      { background-color: #f8fafc !important; }
+:root.light .bg-slate-900\/90  { background-color: rgba(248,250,252,0.92) !important; }
+:root.light .bg-slate-900\/95  { background-color: rgba(248,250,252,0.96) !important; }
+:root.light .bg-slate-800\/60  { background-color: rgba(241,245,249,0.90) !important; }
+
+/* Purple backgrounds */
+:root.light .bg-purple-900\/20 { background-color: rgba(237,233,254,0.50) !important; }
+:root.light .bg-purple-900\/30 { background-color: rgba(237,233,254,0.60) !important; }
+
+/* Status badge backgrounds — keep vivid, just slightly softer */
+:root.light .bg-green-500  { background-color: #16a34a !important; }
+:root.light .bg-orange-500 { background-color: #ea580c !important; }
+:root.light .bg-red-500    { background-color: #dc2626 !important; }
+:root.light .bg-slate-500  { background-color: #64748b !important; }
+
+/* Borders */
+:root.light .border-white\/10  { border-color: rgba(109,40,217,0.10) !important; }
+:root.light .border-white\/15  { border-color: rgba(109,40,217,0.15) !important; }
+:root.light .border-white\/20  { border-color: rgba(109,40,217,0.20) !important; }
+:root.light .border-white\/25  { border-color: rgba(109,40,217,0.25) !important; }
+:root.light .border-white\/30  { border-color: rgba(109,40,217,0.30) !important; }
+
+/* ── Text colors ─────────────────────────────────────────────────────────────── */
+:root.light .text-white        { color: #1e1b4b !important; }
+
+/* Purple scale → dark violet equivalents */
+:root.light .text-purple-100   { color: #4c1d95 !important; }
+:root.light .text-purple-200   { color: #5b21b6 !important; }
+:root.light .text-purple-300   { color: #6d28d9 !important; }
+:root.light .text-purple-400   { color: #7c3aed !important; }
+:root.light .text-purple-500   { color: #8b5cf6 !important; }
+:root.light .text-purple-600   { color: #7c3aed !important; }
+
+/* Violet */
+:root.light .text-violet-300   { color: #5b21b6 !important; }
+:root.light .text-violet-400   { color: #6d28d9 !important; }
+
+/* Status / semantic colours — keep readable on light bg */
+:root.light .text-green-300    { color: #15803d !important; }
+:root.light .text-green-400    { color: #16a34a !important; }
+:root.light .text-orange-300   { color: #c2410c !important; }
+:root.light .text-orange-400   { color: #ea580c !important; }
+:root.light .text-red-300      { color: #b91c1c !important; }
+:root.light .text-red-400      { color: #dc2626 !important; }
+:root.light .text-blue-300     { color: #1d4ed8 !important; }
+:root.light .text-blue-400     { color: #2563eb !important; }
+:root.light .text-cyan-300     { color: #0e7490 !important; }
+:root.light .text-cyan-400     { color: #0891b2 !important; }
+:root.light .text-yellow-400   { color: #b45309 !important; }
+:root.light .text-amber-300    { color: #b45309 !important; }
+:root.light .text-amber-400    { color: #d97706 !important; }
+:root.light .text-pink-400     { color: #db2777 !important; }
+:root.light .text-pink-500     { color: #ec4899 !important; }
+:root.light .text-slate-300    { color: #475569 !important; }
+:root.light .text-slate-400    { color: #64748b !important; }
+
+/* ── Inputs & selects ─────────────────────────────────────────────────────────── */
 :root.light select,
 :root.light input[type="text"],
 :root.light input[type="date"],
-:root.light input[type="number"] {
-  background-color: rgba(255,255,255,0.90) !important;
+:root.light input[type="number"],
+:root.light input[type="search"] {
+  background-color: rgba(255,255,255,0.95) !important;
   color: #1e1b4b !important;
   border-color: rgba(109,40,217,0.25) !important;
 }
-:root.light option {
+:root.light option,
+:root.light optgroup {
   background-color: #ffffff;
   color: #1e1b4b;
+}
+:root.light ::placeholder { color: #8b5cf6 !important; opacity: 0.7; }
+
+/* ── Tab navigation ───────────────────────────────────────────────────────────── */
+:root.light .border-white\/10 { border-color: rgba(109,40,217,0.12) !important; }
+
+/* ── Backdrop blur surfaces (cards, modals) ───────────────────────────────────── */
+:root.light .backdrop-blur-lg  { backdrop-filter: blur(12px); }
+:root.light .backdrop-blur-sm  { backdrop-filter: blur(6px); }
+
+/* ── Hover states ─────────────────────────────────────────────────────────────── */
+:root.light .hover\:bg-white\/5:hover  { background-color: rgba(109,40,217,0.06) !important; }
+:root.light .hover\:bg-white\/8:hover  { background-color: rgba(109,40,217,0.08) !important; }
+:root.light .hover\:bg-white\/10:hover { background-color: rgba(109,40,217,0.10) !important; }
+:root.light .hover\:bg-white\/15:hover { background-color: rgba(109,40,217,0.12) !important; }
+:root.light .hover\:bg-white\/20:hover { background-color: rgba(109,40,217,0.15) !important; }
+
+/* ── Card / surface separation in light mode ──────────────────────────────────── */
+
+/* Outer cards */
+:root.light .bg-white\/10,
+:root.light .bg-white\/15,
+:root.light .bg-white\/20 {
+  background-color: #ffffff !important;
+  border-color: rgba(109,40,217,0.22) !important;
+  box-shadow:
+    0 0 0 1px rgba(109,40,217,0.10),
+    0 4px 20px -4px rgba(109,40,217,0.18),
+    0 1px 4px rgba(109,40,217,0.08) !important;
+}
+
+/* Inner nested cards — violet tinted so they clearly sit inside the outer card */
+:root.light .bg-white\/5  {
+  background-color: rgba(237,233,254,0.60) !important;
+  border: 1px solid rgba(109,40,217,0.16) !important;
+  box-shadow: none !important;
+}
+:root.light .bg-white\/8  { background-color: rgba(237,233,254,0.45) !important; }
+:root.light .bg-white\/\[0\.03\] { background-color: rgba(237,233,254,0.25) !important; }
+
+/* Selection highlight */
+:root.light .bg-blue-500\/10 { background-color: rgba(59,130,246,0.08) !important; }
+:root.light .bg-blue-500\/15 { background-color: rgba(59,130,246,0.12) !important; }
+
+/* ── Status-tinted sub-rows (SummaryCards pending/overdue rows) ───────────────── */
+:root.light .bg-orange-500\/10 { background-color: rgba(251,146,60,0.12) !important; border: 1px solid rgba(234,88,12,0.20) !important; }
+:root.light .bg-red-500\/10    { background-color: rgba(239,68,68,0.10) !important;  border: 1px solid rgba(220,38,38,0.18) !important; }
+:root.light .bg-green-500\/10  { background-color: rgba(34,197,94,0.10) !important;  border: 1px solid rgba(22,163,74,0.18)  !important; }
+:root.light .bg-violet-500\/10 { background-color: rgba(139,92,246,0.10) !important; border: 1px solid rgba(109,40,217,0.18) !important; }
+:root.light .bg-amber-500\/8   { background-color: rgba(245,158,11,0.10) !important; border: 1px solid rgba(217,119,6,0.18)  !important; }
+:root.light .bg-slate-900 {
+  background-color: #ffffff !important;
+}
+:root.light .bg-slate-900.border,
+:root.light .bg-slate-900.rounded-xl {
+  border-color: rgba(109,40,217,0.22) !important;
+  box-shadow: 0 8px 24px -4px rgba(109,40,217,0.18) !important;
+}
+
+/* ── Month-over-Month table (.mom-table) ─────────────────────────────────────── */
+:root.light .mom-table thead tr th {
+  background-color: #2e1065 !important;
+  color: #e9d5ff !important;
+}
+:root.light .mom-table tbody td.sticky {
+  background-color: #f5f3ff !important;
+  color: #1e1b4b !important;
+  border-right: 1px solid rgba(109,40,217,0.15);
+}
+:root.light .mom-table tbody tr:hover td.sticky {
+  background-color: #ede9fe !important;
+}
+:root.light .mom-table tbody tr:last-child td {
+  background-color: rgba(237,233,254,0.70) !important;
+  font-weight: 600;
+}
+:root.light .mom-table tbody tr {
+  border-bottom: 1px solid rgba(109,40,217,0.08) !important;
 }

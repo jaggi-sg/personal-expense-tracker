@@ -1,7 +1,7 @@
 // src/components/Header.jsx
 
 import React, { useEffect, useRef } from 'react';
-import { Wallet, Sun, Moon } from 'lucide-react';
+import { Wallet, Sun, Moon, Smartphone } from 'lucide-react';
 
 // Animated canvas — subtle drifting particles for depth
 const ParticleCanvas = () => {
@@ -81,27 +81,43 @@ const ParticleCanvas = () => {
   );
 };
 
-const Header = ({ isDark, toggleTheme }) => (
+const Header = ({ isDark, toggleTheme, onOpenQR }) => (
   <div
     className="relative overflow-hidden rounded-2xl mb-6"
     style={{
-      background: 'linear-gradient(135deg, #0d0a1e 0%, #130d2e 30%, #0f1729 60%, #0a0d1f 100%)',
-      boxShadow: '0 0 0 1px rgba(139,92,246,0.15), 0 32px 64px -16px rgba(0,0,0,0.7), 0 0 80px -20px rgba(109,40,217,0.3)',
+      background: isDark
+        ? 'linear-gradient(135deg, #0d0a1e 0%, #130d2e 30%, #0f1729 60%, #0a0d1f 100%)'
+        : 'linear-gradient(135deg, #ede9fe 0%, #ddd6fe 30%, #c4b5fd 60%, #ede9fe 100%)',
+      boxShadow: isDark
+        ? '0 0 0 1px rgba(139,92,246,0.15), 0 32px 64px -16px rgba(0,0,0,0.7), 0 0 80px -20px rgba(109,40,217,0.3)'
+        : '0 0 0 1px rgba(109,40,217,0.2), 0 8px 32px -8px rgba(109,40,217,0.15)',
     }}
   >
-    {/* Theme toggle — top right */}
-    {toggleTheme && (
-      <button
-        onClick={toggleTheme}
-        className="absolute top-4 right-4 z-20 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg p-2 transition-all"
-        title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-      >
-        {isDark
-          ? <Sun  className="w-4 h-4 text-yellow-300" />
-          : <Moon className="w-4 h-4 text-purple-300" />}
-      </button>
-    )}
-
+    {/* Top-right controls */}
+    <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+      {/* Phone scan QR button */}
+      {onOpenQR && (
+        <button
+          onClick={onOpenQR}
+          className="bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 rounded-lg p-2 transition-all"
+          title="Scan receipts from phone"
+        >
+          <Smartphone className="w-4 h-4 text-emerald-400" />
+        </button>
+      )}
+      {/* Theme toggle */}
+      {toggleTheme && (
+        <button
+          onClick={toggleTheme}
+          className="bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg p-2 transition-all"
+          title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {isDark
+            ? <Sun  className="w-4 h-4 text-yellow-300" />
+            : <Moon className="w-4 h-4 text-purple-300" />}
+        </button>
+      )}
+    </div>
     {/* Particle canvas */}
     <ParticleCanvas />
 
@@ -135,12 +151,15 @@ const Header = ({ isDark, toggleTheme }) => (
 
         {/* Title */}
         <h1
-          className="font-black text-white leading-none"
+          className="font-black leading-none"
           style={{
             fontSize: 'clamp(1.75rem, 5vw, 2.75rem)',
             fontFamily: '"Rajdhani", "Bebas Neue", "Impact", sans-serif',
             letterSpacing: '0.06em',
-            textShadow: '0 0 40px rgba(139,92,246,0.6), 0 2px 4px rgba(0,0,0,0.5)',
+            color: isDark ? '#ffffff' : '#3b0764',
+            textShadow: isDark
+              ? '0 0 40px rgba(139,92,246,0.6), 0 2px 4px rgba(0,0,0,0.5)'
+              : '0 1px 2px rgba(109,40,217,0.2)',
           }}
         >
           EXPENSE TRACKER
@@ -151,7 +170,7 @@ const Header = ({ isDark, toggleTheme }) => (
       <div className="flex items-center gap-3 mb-3 w-full max-w-sm">
         <div className="h-px flex-1"
           style={{ background: 'linear-gradient(90deg, transparent, rgba(139,92,246,0.5))' }} />
-        <p className="text-purple-300/70 text-xs font-semibold tracking-widest uppercase whitespace-nowrap">
+        <p className={`text-xs font-semibold tracking-widest uppercase whitespace-nowrap ${isDark ? "text-purple-300/70" : "text-violet-700/80"}`}>
           Personal Finance Dashboard
         </p>
         <div className="h-px flex-1"
@@ -159,7 +178,7 @@ const Header = ({ isDark, toggleTheme }) => (
       </div>
 
       {/* Tagline */}
-      <p className="text-purple-400/50 text-xs tracking-wide">
+      <p className={`text-xs tracking-wide ${isDark ? "text-purple-400/50" : "text-violet-600/60"}`}>
         Track your recurring and non-recurring expenses with ease
       </p>
 

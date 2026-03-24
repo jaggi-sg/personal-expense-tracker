@@ -25,6 +25,7 @@ const NonRecurringExpenses = ({
   newCategoryName,
   setNewCategoryName,
   handleAddCategory,
+  onDeleteCategory,
   showSubTransactions,
   setShowSubTransactions,
   subTransactions,
@@ -41,6 +42,13 @@ const NonRecurringExpenses = ({
   newPaymentTypeName,
   setNewPaymentTypeName,
   handleAddPaymentType,
+  onDeletePaymentType,
+  paidByOptions = [],
+  onAddPaidBy,
+  onDeletePaidBy,
+  trips = [],
+  onAddTrip,
+  onDeleteTrip,
   availableYears,
   templates = [],
   onLoadTemplate,
@@ -51,8 +59,11 @@ const NonRecurringExpenses = ({
   onCloneExpense,
   onBulkEdit,
   onSkipMonth,
+  onStatusChange,
+  onScanAddExpense,
 }) => {
   const [searchCriteria, setSearchCriteria]       = useState({});
+  const [selectedTrip,   setSelectedTrip]         = useState('');
   const [expandedTransactions, setExpandedTransactions] = useState({});
   const { presets, addPreset, deletePreset, toggleFavorite } = useFilterPresets();
 
@@ -69,7 +80,10 @@ const NonRecurringExpenses = ({
 
   // Layer advanced criteria on top
   const hasAdvanced = Object.entries(searchCriteria).some(([, v]) => v && v !== '' && v !== 'All');
-  const finalFiltered = hasAdvanced ? applyAdvancedFilters(filteredExpenses, searchCriteria) : filteredExpenses;
+  const advFiltered = hasAdvanced ? applyAdvancedFilters(filteredExpenses || [], searchCriteria) : (filteredExpenses || []);
+  const finalFiltered = selectedTrip
+    ? advFiltered.filter(e => e.trip === selectedTrip)
+    : advFiltered;
 
   const itemsPerPage = 10;
   const totalPages   = Math.ceil(finalFiltered.length / itemsPerPage);
@@ -84,9 +98,32 @@ const NonRecurringExpenses = ({
   const toggleTransactions = (id) =>
     setExpandedTransactions(prev => ({ ...prev, [id]: !prev[id] }));
 
-  const handleClearAll   = () => { clearAllFilters(); setSearchCriteria({}); };
+  const handleClearAll = () => { clearAllFilters(); setSearchCriteria({}); setSelectedTrip(''); };
   const handleBulkDelete = (ids) => ids.forEach(id => deleteExpense(id));
   const handleSavePreset = (name, criteria) => { addPreset(name, criteria); alert(`✅ Preset "${name}" saved!`); };
+  const handleCategoryFilter = (cat) => toggleCategory(cat);
+  const handleQuickAdd = (date) => {
+    if (!date) return;
+    const d = new Date(date + 'T00:00:00Z');
+    setFormData(prev => ({
+      ...prev,
+      date,
+      month: d.toLocaleString('default', { month: 'long', timeZone: 'UTC' }),
+    }));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleLoadPreset = (criteria) => {
+    if (criteria.dateFrom)    setDateFrom(criteria.dateFrom);
+    if (criteria.dateTo)      setDateTo(criteria.dateTo);
+    if (criteria.quickSearch) setSearchQuery(criteria.quickSearch);
+    if (criteria.categories)  {
+      clearAllFilters();
+      criteria.categories.split(',').forEach(c => c.trim() && toggleCategory(c.trim()));
+    }
+    const { dateFrom: _df, dateTo: _dt, categories: _cats, quickSearch: _qs, ...advanced } = criteria;
+    setSearchCriteria(Object.keys(advanced).length ? advanced : {});
+  };
 
   return (
     <>
@@ -110,11 +147,19 @@ const NonRecurringExpenses = ({
         newCategoryName={newCategoryName}
         setNewCategoryName={setNewCategoryName}
         handleAddCategory={handleAddCategory}
+        onDeleteCategory={onDeleteCategory}
         showNewPaymentTypeInput={showNewPaymentTypeInput}
         setShowNewPaymentTypeInput={setShowNewPaymentTypeInput}
         newPaymentTypeName={newPaymentTypeName}
         setNewPaymentTypeName={setNewPaymentTypeName}
         handleAddPaymentType={handleAddPaymentType}
+        onDeletePaymentType={onDeletePaymentType}
+        paidByOptions={paidByOptions}
+        onAddPaidBy={onAddPaidBy}
+        onDeletePaidBy={onDeletePaidBy}
+        trips={trips}
+        onAddTrip={onAddTrip}
+        onDeleteTrip={onDeleteTrip}
         handleAddExpense={handleAddExpense}
         showAmountField={true}
         amountRequired={true}
@@ -136,6 +181,7 @@ const NonRecurringExpenses = ({
         onToggleFavorite={onToggleFavorite}
         onSaveTemplate={onSaveTemplate}
         onClearForm={onClearForm}
+        onScanAddExpense={onScanAddExpense}
         expenseType="Non-Recurring"
       />
 
@@ -154,12 +200,16 @@ const NonRecurringExpenses = ({
           sortBy={sortBy}                 setSortBy={setSortBy}
           searchCriteria={searchCriteria} onSearchChange={setSearchCriteria}
           presets={presets}
-          onLoadPreset={(c) => setSearchCriteria(c)}
+          onLoadPreset={handleLoadPreset}
           onSavePreset={handleSavePreset}
           onDeletePreset={deletePreset}
           hasExpenses={nonRecurringList.length > 0}
           onDeleteAll={() => deleteAllExpenses('Non-Recurring')}
           filteredCount={finalFiltered.length}
+          filteredExpenses={finalFiltered}
+          trips={trips}
+          selectedTrip={selectedTrip}
+          setSelectedTrip={setSelectedTrip}
         />
 
         {finalFiltered.length === 0 && filteredExpenses.length > 0 && hasAdvanced && (
@@ -189,6 +239,10 @@ const NonRecurringExpenses = ({
           onBulkDelete={handleBulkDelete}
           onBulkEdit={onBulkEdit}
           onSkipMonth={onSkipMonth}
+          onStatusChange={onStatusChange}
+          onCategoryFilter={handleCategoryFilter}
+          onQuickAdd={handleQuickAdd}
+          trips={trips}
         />
 
         <Pagination
