@@ -15,7 +15,9 @@ import BulkEditModal from './components/expenses/BulkEditModal';
 import SkipMonthModal from './components/expenses/SkipMonthModal';
 import CategoryDrillDownModal from './components/analytics/CategoryDrillDownModal';
 import QRScanModal from './components/scanner/QRScanModal';
+import ChartThemePicker from './components/layout/ChartThemePicker';
 import { useTheme } from './hooks/useTheme';
+import { useChartTheme } from './hooks/useChartTheme';
 import { useExpenseTemplates } from './hooks/useExpenseTemplates';
 import { useExpenseData } from './hooks/useExpenseData';
 import { useExpenseForm } from './hooks/useExpenseForm';
@@ -38,6 +40,7 @@ const App = () => {
 
   // ── Theme ────────────────────────────────────────────────────────────────────
   const { isDark, toggleTheme } = useTheme();
+  const { theme: chartTheme, themeKey, setTheme: setChartTheme } = useChartTheme();
 
   // ── Category drill-down ──────────────────────────────────────────────────────
   const [drillCategory, setDrillCategory] = useState(null);
@@ -157,13 +160,38 @@ const App = () => {
   };
 
   const handleCloneExpense = (expense) => {
-    saveExpenses([...expenses, {
+    const cloned = {
       ...expense,
       id: Date.now().toString(),
       date: new Date().toISOString().split('T')[0],
       month: new Date().toLocaleString('default', { month: 'long', timeZone: 'UTC' }),
-    }]);
-    alert('✅ Expense cloned with today\'s date!');
+      subTransactions: expense.subTransactions
+        ? expense.subTransactions.map(st => ({ ...st }))
+        : undefined,
+    };
+    saveExpenses([...expenses, cloned]);
+    alert('Expense cloned with today\'s date!');
+  };
+
+  const handleBulkCloneExpense = (ids) => {
+    const now   = new Date();
+    const today = now.toISOString().split('T')[0];
+    const month = now.toLocaleString('default', { month: 'long', timeZone: 'UTC' });
+    const clones = ids.map(id => {
+      const original = expenses.find(e => e.id === id);
+      if (!original) return null;
+      return {
+        ...original,
+        id: Date.now().toString() + '-' + id,
+        date: today,
+        month,
+        status: 'PENDING',
+        subTransactions: original.subTransactions
+          ? original.subTransactions.map(st => ({ ...st }))
+          : undefined,
+      };
+    }).filter(Boolean);
+    saveExpenses([...expenses, ...clones]);
   };
 
   // ── Inline status change ─────────────────────────────────────────────────────
@@ -285,6 +313,9 @@ const App = () => {
     <div className={`min-h-screen p-4 md:p-8 ${isDark ? 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900' : 'bg-gradient-to-br from-slate-100 via-violet-100 to-purple-100'}`}>
       <div className="max-w-7xl mx-auto">
         <Header isDark={isDark} toggleTheme={toggleTheme} onOpenQR={() => setShowQR(true)} />
+        <div className="flex justify-end mb-3 -mt-3">
+          <ChartThemePicker themeKey={themeKey} setTheme={setChartTheme} />
+        </div>
 
         {showBackupReminder && (
           <BackupReminder onBackupNow={handleBackupNow} onDismiss={dismissBackupReminder} />
@@ -310,6 +341,7 @@ const App = () => {
             onImportClick={() => importFileRef.current?.click()}
             importFromJSON={(e) => importFromJSON(e, expenses, saveExpenses)}
             importFromCSV={(e) => importFromCSV(e, expenses, saveExpenses)}
+            onStatusChange={handleStatusChange}
           />
         )}
 
@@ -354,6 +386,7 @@ const App = () => {
             onSaveTemplate={() => setShowSaveTemplateModal(true)}
             onClearForm={() => resetRecurringForm('Recurring')}
             onCloneExpense={handleCloneExpense}
+            onBulkClone={handleBulkCloneExpense}
             {...sharedTableProps}
           />
         )}
@@ -422,6 +455,7 @@ const App = () => {
             onSaveTemplate={() => setShowSaveTemplateModal(true)}
             onClearForm={() => resetNonRecurringForm('Non-Recurring')}
             onCloneExpense={handleCloneExpense}
+            onBulkClone={handleBulkCloneExpense}
             {...sharedTableProps}
           />
         )}
@@ -431,7 +465,7 @@ const App = () => {
         )}
 
         {activeTab === 'visualizations' && (
-          <Visualizations expenses={expenses} filterYear={filterYear} setFilterYear={setFilterYear} availableYears={availableYears} onCategoryClick={handleCategoryClick} />
+          <Visualizations expenses={expenses} filterYear={filterYear} setFilterYear={setFilterYear} availableYears={availableYears} onCategoryClick={handleCategoryClick} chartTheme={chartTheme} />
         )}
 
         {/* ── Modals ──────────────────────────────────────────────────────── */}

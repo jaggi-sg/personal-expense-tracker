@@ -175,7 +175,12 @@ const SpendHeatmap = ({ expenses, filterYear }) => {
 };
 
 // ── Main component ────────────────────────────────────────────────────────────
-const Visualizations = ({ expenses, filterYear, setFilterYear, availableYears, onCategoryClick }) => {
+const Visualizations = ({ expenses, filterYear, setFilterYear, availableYears, onCategoryClick, chartTheme }) => {
+  // Fallback palette if no theme passed
+  const palette  = chartTheme?.pie || PALETTE;
+  const recColors    = chartTheme?.recurring    || { border: '#f472b6', bg: 'rgba(244,114,182,0.08)', bar: 'rgba(124,58,237,0.75)' };
+  const nonRecColors = chartTheme?.nonRecurring || { border: '#34d399', bg: 'rgba(52,211,153,0.08)',  bar: 'rgba(59,130,246,0.75)' };
+  const primaryColor = chartTheme?.primary || '#7c3aed';
   const mixedRef          = useRef(null);
   const cumulativeRef     = useRef(null);
   const recurDonutRef     = useRef(null);
@@ -238,18 +243,18 @@ const Visualizations = ({ expenses, filterYear, setFilterYear, availableYears, o
             {
               type: 'line', label: 'Total Trend',
               data: monthlyRec.map((r, i) => r + monthlyNonRec[i]),
-              borderColor: '#f472b6', backgroundColor: 'rgba(244,114,182,0.08)',
+              borderColor: recColors.border, backgroundColor: recColors.bg,
               borderWidth: 2.5, tension: 0.45, fill: true, pointRadius: 3,
-              pointBackgroundColor: '#f472b6', yAxisID: 'y',
+              pointBackgroundColor: recColors.border, yAxisID: 'y',
             },
             {
               type: 'bar', label: 'Recurring',
-              data: monthlyRec, backgroundColor: 'rgba(124,58,237,0.75)',
+              data: monthlyRec, backgroundColor: recColors.bar,
               borderRadius: 4, yAxisID: 'y',
             },
             {
               type: 'bar', label: 'Non-Recurring',
-              data: monthlyNonRec, backgroundColor: 'rgba(59,130,246,0.75)',
+              data: monthlyNonRec, backgroundColor: nonRecColors.bar,
               borderRadius: 4, yAxisID: 'y',
             },
           ],
@@ -259,7 +264,7 @@ const Visualizations = ({ expenses, filterYear, setFilterYear, availableYears, o
           plugins: {
             legend: CHART_DEFAULTS.legend(),
             tooltip: CHART_DEFAULTS.tooltip({
-              label: ctx => `${ctx.dataset.label}: $${ctx.parsed.y.toFixed(2)}`,
+              label: ctx => ctx.dataset.label + ': $' + ctx.parsed.y.toFixed(2),
             }),
           },
           scales: {
@@ -279,21 +284,21 @@ const Visualizations = ({ expenses, filterYear, setFilterYear, availableYears, o
           datasets: [
             {
               label: 'Total', data: cumulativeTotal,
-              borderColor: '#f472b6', backgroundColor: 'rgba(244,114,182,0.07)',
+              borderColor: recColors.border, backgroundColor: recColors.bg,
               borderWidth: 2.5, fill: true, tension: 0.4, pointRadius: 3,
-              pointBackgroundColor: '#f472b6',
+              pointBackgroundColor: recColors.border,
             },
             {
               label: 'Recurring', data: cumulativeRec,
-              borderColor: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.06)',
+              borderColor: primaryColor, backgroundColor: primaryColor.replace(')', ',0.06)').replace('rgb', 'rgba'),
               borderWidth: 2, fill: true, tension: 0.4, pointRadius: 3,
-              pointBackgroundColor: '#7c3aed',
+              pointBackgroundColor: primaryColor,
             },
             {
               label: 'Non-Recurring', data: cumulativeNonRec,
-              borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.06)',
+              borderColor: nonRecColors.border, backgroundColor: nonRecColors.bg,
               borderWidth: 2, fill: true, tension: 0.4, pointRadius: 3,
-              pointBackgroundColor: '#3b82f6',
+              pointBackgroundColor: nonRecColors.border,
             },
           ],
         },
@@ -302,7 +307,7 @@ const Visualizations = ({ expenses, filterYear, setFilterYear, availableYears, o
           plugins: {
             legend: CHART_DEFAULTS.legend(),
             tooltip: CHART_DEFAULTS.tooltip({
-              label: ctx => `${ctx.dataset.label}: $${ctx.parsed.y.toFixed(2)}`,
+              label: ctx => ctx.dataset.label + ': $' + ctx.parsed.y.toFixed(2),
             }),
           },
           scales: {
@@ -319,7 +324,7 @@ const Visualizations = ({ expenses, filterYear, setFilterYear, availableYears, o
         type: 'doughnut',
         data: {
           labels: recurCatData.map(([c]) => c),
-          datasets: [{ data: recurCatData.map(([,v]) => v), backgroundColor: PALETTE, borderWidth: 0, hoverOffset: 6 }],
+          datasets: [{ data: recurCatData.map(([,v]) => v), backgroundColor: palette, borderWidth: 0, hoverOffset: 6 }],
         },
         options: {
           responsive: true, maintainAspectRatio: false, cutout: '68%',
@@ -342,7 +347,7 @@ const Visualizations = ({ expenses, filterYear, setFilterYear, availableYears, o
         type: 'doughnut',
         data: {
           labels: nonRecurCatData.map(([c]) => c),
-          datasets: [{ data: nonRecurCatData.map(([,v]) => v), backgroundColor: PALETTE, borderWidth: 0, hoverOffset: 6 }],
+          datasets: [{ data: nonRecurCatData.map(([,v]) => v), backgroundColor: palette, borderWidth: 0, hoverOffset: 6 }],
         },
         options: {
           responsive: true, maintainAspectRatio: false, cutout: '68%',
@@ -364,7 +369,7 @@ const Visualizations = ({ expenses, filterYear, setFilterYear, availableYears, o
         if (r.current) { r.current.destroy(); r.current = null; }
       });
     };
-  }, [expenses, filterYear]);
+  }, [expenses, filterYear, chartTheme]);
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (

@@ -1,9 +1,109 @@
 // src/components/ExpenseTable.jsx
 
 import React, { useState } from 'react';
-import { Trash2, Download, CheckSquare, Square, Edit3, Plus, AlertTriangle, ChevronDown, ChevronUp, CheckCheck } from 'lucide-react';
+import { Trash2, Download, CheckSquare, Square, Edit3, Plus, AlertTriangle, ChevronDown, ChevronUp, CheckCheck, Copy, Layers, Tag } from 'lucide-react';
 import ExpenseRow, { categoryColor } from './ExpenseRow';
 import { exportToJSON, exportToCSV } from '../../utils/dataExport';
+
+// ── Category group row — collapsible summary for a category within a month ────
+const CategoryGroup = ({
+  category, items, colSpan,
+  editingExpense, setEditingExpense, saveEdit, cancelEdit,
+  deleteExpense, onStatusChange, onCategoryFilter,
+  categories, paymentTypes, hasSubTransactions,
+  expandedTransactions, onToggleExpanded,
+  onClone, onSkipMonth, selectedIds, onToggleSelect, trips,
+}) => {
+  const [open, setOpen] = useState(false);
+
+  const total   = items.reduce((s, e) => s + e.amount, 0);
+  const paid    = items.filter(e => e.status === 'PAID');
+  const pending = items.filter(e => e.status !== 'PAID' && e.status !== 'SKIPPED');
+  const dot     = categoryColor(category);
+  const allPaid = pending.length === 0;
+
+  return (
+    <>
+      {/* Summary row */}
+      <tr
+        className={'border-b border-white/10 cursor-pointer transition-colors ' + (open ? 'bg-white/8' : 'hover:bg-white/5')}
+        onClick={() => setOpen(o => !o)}
+      >
+        <td className="py-2.5 pl-2 w-8">
+          <div className="flex items-center justify-center">
+            <Layers className="w-3.5 h-3.5 text-purple-500" />
+          </div>
+        </td>
+        <td className="py-2.5 pr-3 whitespace-nowrap">
+          <span className="text-purple-400 text-xs italic">grouped</span>
+        </td>
+        <td className="py-2.5 pr-3">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: dot }} />
+            <span className="text-white font-semibold text-sm">{category}</span>
+            <span className="text-purple-500 text-xs bg-white/5 px-1.5 py-0.5 rounded-full">
+              {items.length} transactions
+            </span>
+          </div>
+        </td>
+        <td className="py-2.5 pr-3">
+          <span className="text-purple-400 text-xs truncate max-w-[200px] block">
+            {items.slice(0, 3).map(e => e.description).join(', ')}
+            {items.length > 3 ? '...' : ''}
+          </span>
+        </td>
+        <td className="py-2.5 pr-3 whitespace-nowrap">
+          <span className={'font-bold text-sm ' + (allPaid ? 'text-green-400' : 'text-orange-400')}>
+            {'$' + total.toFixed(2)}
+          </span>
+          {pending.length > 0 && (
+            <span className="text-orange-400 text-xs ml-1.5">
+              ({pending.length} pending)
+            </span>
+          )}
+        </td>
+        <td className="py-2.5 pr-3" />
+        <td className="py-2.5 pr-3">
+          <span className={'text-[10px] font-bold px-2 py-0.5 rounded border ' + (allPaid ? 'bg-green-500/15 text-green-300 border-green-500/25' : 'bg-orange-500/15 text-orange-300 border-orange-500/25')}>
+            {allPaid ? 'ALL PAID' : (paid.length + '/' + items.length + ' PAID')}
+          </span>
+        </td>
+        <td className="py-2.5 pr-2">
+          {open
+            ? <ChevronUp className="w-4 h-4 text-purple-400" />
+            : <ChevronDown className="w-4 h-4 text-purple-400" />}
+        </td>
+      </tr>
+
+      {/* Expanded individual rows */}
+      {open && items.map((expense, i) => (
+        <ExpenseRow
+          key={expense.id}
+          expense={expense}
+          editingExpense={editingExpense}
+          setEditingExpense={setEditingExpense}
+          saveEdit={saveEdit}
+          cancelEdit={cancelEdit}
+          deleteExpense={deleteExpense}
+          onStatusChange={onStatusChange}
+          onCategoryFilter={onCategoryFilter}
+          categories={categories}
+          paymentTypes={paymentTypes}
+          hasSubTransactions={hasSubTransactions}
+          isExpanded={expandedTransactions[expense.id]}
+          onToggleExpanded={onToggleExpanded}
+          onClone={onClone}
+          isSelected={selectedIds.includes(expense.id)}
+          onToggleSelect={onToggleSelect}
+          showCheckbox={true}
+          onSkipMonth={expense.type === 'Recurring' ? onSkipMonth : undefined}
+          isZebra={i % 2 === 1}
+          trips={trips}
+        />
+      ))}
+    </>
+  );
+};
 
 // ── Pending / Overdue banner ──────────────────────────────────────────────────
 const OverdueBanner = ({ expenses, onStatusChange }) => {
@@ -187,6 +287,7 @@ const ExpenseTable = ({
   onToggleExpanded = () => {},
   onBulkDelete,
   onBulkEdit,
+  onBulkClone,
   onSkipMonth,
   onStatusChange,
   onCategoryFilter,
@@ -212,6 +313,13 @@ const ExpenseTable = ({
     setSelectedIds([]);
   };
   const handleBulkEdit  = () => onBulkEdit?.(selectedIds);
+  const handleBulkClone = () => {
+    if (!onBulkClone) return;
+    const count = selectedIds.length;
+    if (!window.confirm('Clone ' + count + ' selected expense' + (count !== 1 ? 's' : '') + ' with today\'s date?')) return;
+    onBulkClone(selectedIds);
+    setSelectedIds([]);
+  };
   const handleExport    = (fmt) => {
     const src = allFilteredExpenses.length > 0 ? allFilteredExpenses : expenses;
     fmt === 'json' ? exportToJSON(src, 'filtered-expenses') : exportToCSV(src, 'filtered-expenses');
@@ -231,6 +339,27 @@ const ExpenseTable = ({
   // Row index tracker for zebra striping (resets per group)
   const COL = 8;
 
+  // ── Category grouping ──────────────────────────────────────────────────────
+  // Persisted to localStorage so preference survives page refresh
+  const [groupedCategories, setGroupedCategories] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('grouped-categories') || '["Groceries"]');
+    } catch { return ['Groceries']; }
+  });
+
+  const [showGroupManager, setShowGroupManager] = useState(false);
+
+  const toggleGroupCategory = (cat) => {
+    setGroupedCategories(prev => {
+      const next = prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat];
+      try { localStorage.setItem('grouped-categories', JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+
+  // All unique categories present in current expenses list
+  const presentCategories = [...new Set(expenses.map(e => e.category))].filter(Boolean).sort();
+
   return (
     <div className="relative">
 
@@ -246,6 +375,12 @@ const ExpenseTable = ({
               className="text-xs text-blue-300 hover:text-white border border-blue-500/30 hover:border-blue-400 px-3 py-1.5 rounded transition-colors">
               Clear
             </button>
+            {onBulkClone && (
+              <button onClick={handleBulkClone}
+                className="flex items-center gap-1.5 text-xs bg-emerald-500/25 hover:bg-emerald-500/40 text-emerald-200 border border-emerald-500/40 px-3 py-1.5 rounded font-semibold transition-all">
+                <Copy className="w-3.5 h-3.5" /> Clone {selectedIds.length}
+              </button>
+            )}
             {onBulkEdit && (
               <button onClick={handleBulkEdit}
                 className="flex items-center gap-1.5 text-xs bg-blue-500/25 hover:bg-blue-500/40 text-blue-200 border border-blue-500/40 px-3 py-1.5 rounded font-semibold transition-all">
@@ -261,12 +396,59 @@ const ExpenseTable = ({
       )}
 
       {/* ── Export row ───────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-purple-400 text-xs">
-          {allFilteredExpenses.length > 0
-            ? `${allFilteredExpenses.length} filtered result${allFilteredExpenses.length !== 1 ? 's' : ''}`
-            : `${expenses.length} on this page`}
-        </span>
+      <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
+          <span className="text-purple-400 text-xs">
+            {allFilteredExpenses.length > 0
+              ? allFilteredExpenses.length + ' filtered result' + (allFilteredExpenses.length !== 1 ? 's' : '')
+              : expenses.length + ' on this page'}
+          </span>
+          {/* Group categories toggle */}
+          <div className="relative">
+            <button onClick={() => setShowGroupManager(o => !o)}
+              className={'flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded border transition-all ' +
+                (groupedCategories.length > 0
+                  ? 'bg-violet-500/20 text-violet-300 border-violet-500/35 hover:bg-violet-500/30'
+                  : 'bg-white/5 text-purple-500 border-white/15 hover:bg-white/10 hover:text-purple-300')}>
+              <Layers className="w-3 h-3" />
+              {groupedCategories.length > 0
+                ? 'Grouped: ' + groupedCategories.join(', ')
+                : 'Group categories'}
+            </button>
+
+            {showGroupManager && (
+              <div className="absolute left-0 top-full mt-1 bg-slate-900 border border-white/15 rounded-xl shadow-2xl z-30 p-3 w-64">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-white text-xs font-semibold">Group categories in list</p>
+                  {groupedCategories.length > 0 && (
+                    <button onClick={() => {
+                      setGroupedCategories([]);
+                      try { localStorage.setItem('grouped-categories', '[]'); } catch {}
+                    }} className="text-purple-500 hover:text-red-400 text-xs transition-colors">
+                      Clear all
+                    </button>
+                  )}
+                </div>
+                <p className="text-purple-500 text-[10px] mb-2">Selected categories collapse into a single summary row per month</p>
+                <div className="space-y-1 max-h-48 overflow-y-auto">
+                  {presentCategories.map(cat => {
+                    const active = groupedCategories.includes(cat);
+                    return (
+                      <button key={cat} onClick={() => toggleGroupCategory(cat)}
+                        className={'w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-all text-left ' +
+                          (active ? 'bg-violet-500/20 text-violet-200' : 'hover:bg-white/5 text-purple-400')}>
+                        <span className="w-2 h-2 rounded-full shrink-0" style={{ background: categoryColor(cat) }} />
+                        <span className="flex-1">{cat}</span>
+                        {active && <Layers className="w-3 h-3 text-violet-400 shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="flex items-center gap-2">
           <span className="text-purple-500 text-xs">Export:</span>
           {['json', 'csv'].map(fmt => (
@@ -311,6 +493,34 @@ const ExpenseTable = ({
                 const groupPaid    = group.items.filter(e => e.status === 'PAID').reduce((s, e) => s + e.amount, 0);
                 const groupPending = group.items.filter(e => e.status === 'PENDING').reduce((s, e) => s + e.amount, 0);
                 const groupTotal   = group.items.reduce((s, e) => s + e.amount, 0);
+
+                // Split items into: category-grouped buckets + ungrouped individual rows
+                // Grouped categories with >=2 items get a CategoryGroup row
+                const catBuckets = {};
+                const ungrouped  = [];
+                group.items.forEach(e => {
+                  if (groupedCategories.includes(e.category)) {
+                    if (!catBuckets[e.category]) catBuckets[e.category] = [];
+                    catBuckets[e.category].push(e);
+                  } else {
+                    ungrouped.push(e);
+                  }
+                });
+
+                // Build ordered render list: preserve date order, replace grouped items with single group row
+                // We'll render category groups first (sorted by total desc), then ungrouped rows
+                const catGroupEntries = Object.entries(catBuckets)
+                  .sort((a, b) => b[1].reduce((s,e)=>s+e.amount,0) - a[1].reduce((s,e)=>s+e.amount,0));
+
+                const sharedRowProps = {
+                  editingExpense, setEditingExpense, saveEdit, cancelEdit,
+                  deleteExpense, onStatusChange, onCategoryFilter,
+                  categories, paymentTypes, hasSubTransactions,
+                  expandedTransactions, onToggleExpanded,
+                  onClone, onSkipMonth, selectedIds,
+                  onToggleSelect: toggleSelect, trips,
+                };
+
                 return (
                   <React.Fragment key={group.key}>
                     <MonthDivider
@@ -319,7 +529,20 @@ const ExpenseTable = ({
                       colSpan={COL}
                       onQuickAdd={onQuickAdd}
                     />
-                    {group.items.map(expense => {
+
+                    {/* Grouped category rows */}
+                    {catGroupEntries.map(([cat, items]) => (
+                      <CategoryGroup
+                        key={'group-' + cat}
+                        category={cat}
+                        items={items}
+                        colSpan={COL}
+                        {...sharedRowProps}
+                      />
+                    ))}
+
+                    {/* Individual ungrouped rows */}
+                    {ungrouped.map(expense => {
                       const isZebra = zebraIdx++ % 2 === 1;
                       return (
                         <ExpenseRow
@@ -347,6 +570,7 @@ const ExpenseTable = ({
                         />
                       );
                     })}
+
                     {/* Monthly subtotal footer row */}
                     <tr className="border-b-2 border-white/20 bg-white/5 text-xs sticky bottom-0">
                       <td className="py-1.5 pl-2" />
@@ -354,7 +578,7 @@ const ExpenseTable = ({
                         {group.label + ' — ' + group.items.length + ' expense' + (group.items.length !== 1 ? 's' : '')}
                       </td>
                       <td className="py-1.5 px-3 text-right whitespace-nowrap">
-                        <span className="text-green-400 font-bold">${groupPaid.toFixed(2)}</span>
+                        <span className="text-green-400 font-bold">{'$' + groupPaid.toFixed(2)}</span>
                         {groupPending > 0 && (
                           <span className="text-orange-400 font-semibold ml-2">{'+$' + groupPending.toFixed(2) + ' pending'}</span>
                         )}

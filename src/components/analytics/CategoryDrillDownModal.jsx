@@ -203,27 +203,96 @@ const CategoryDrillDownModal = ({ isOpen, onClose, category, expenses, filterYea
             ))}
           </div>
 
-          {/* Monthly chart */}
-          {byMonth.length > 0 && (
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-              <p className="text-purple-300 text-xs font-semibold uppercase tracking-wide mb-3 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5" /> Paid by month
-              </p>
-              <div className="space-y-1.5">
-                {byMonth.map(([month, val]) => (
-                  <div key={month} className="flex items-center gap-2">
-                    <span className="text-purple-400 text-xs w-9 shrink-0">{month.slice(0,3)}</span>
-                    <div className="flex-1 bg-white/8 rounded-full h-5 overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-violet-500 to-purple-400 rounded-full flex items-center justify-end pr-2 transition-all"
-                        style={{ width: `${(val / maxMonthVal) * 100}%`, minWidth: 40 }}>
-                        <span className="text-white/80 text-[10px] font-bold">${val.toFixed(0)}</span>
+          {/* 6-month trend sparkline + monthly bars */}
+          {byMonth.length > 0 && (() => {
+            // Last 6 months of data for sparkline
+            const last6 = byMonth.slice(-6);
+            const sparkMax = Math.max(...last6.map(([, v]) => v), 1);
+            const W = 280; const H = 48; const PAD = 6;
+            const pts = last6.map(([, v], i) => {
+              const x = PAD + (i / Math.max(last6.length - 1, 1)) * (W - PAD * 2);
+              const y = H - PAD - ((v / sparkMax) * (H - PAD * 2));
+              return [x, y];
+            });
+            const polyline = pts.map(([x, y]) => x + ',' + y).join(' ');
+            const areaPath = pts.length > 1
+              ? 'M' + pts[0][0] + ',' + H
+                + ' L' + pts.map(([x, y]) => x + ',' + y).join(' L')
+                + ' L' + pts[pts.length-1][0] + ',' + H + ' Z'
+              : '';
+
+            // Trend direction
+            const first = last6[0]?.[1] || 0;
+            const last  = last6[last6.length - 1]?.[1] || 0;
+            const trendPct = first > 0 ? ((last - first) / first * 100).toFixed(0) : null;
+            const trendUp  = last > first;
+
+            return (
+              <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-4">
+                {/* Sparkline header */}
+                <div className="flex items-center justify-between">
+                  <p className="text-purple-300 text-xs font-semibold uppercase tracking-wide flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5" /> 6-Month Trend
+                  </p>
+                  {trendPct !== null && (
+                    <span className={'text-xs font-bold px-2 py-0.5 rounded-full '
+                      + (trendUp ? 'bg-red-500/15 text-red-300' : 'bg-green-500/15 text-green-300')}>
+                      {trendUp ? '+' : ''}{trendPct}% over 6 months
+                    </span>
+                  )}
+                </div>
+
+                {/* SVG sparkline */}
+                <div className="relative">
+                  <svg width="100%" viewBox={'0 0 ' + W + ' ' + H} className="overflow-visible">
+                    <defs>
+                      <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#7c3aed" stopOpacity="0.35" />
+                        <stop offset="100%" stopColor="#7c3aed" stopOpacity="0.02" />
+                      </linearGradient>
+                    </defs>
+                    {/* Area fill */}
+                    {areaPath && <path d={areaPath} fill="url(#sparkGrad)" />}
+                    {/* Line */}
+                    {pts.length > 1 && (
+                      <polyline points={polyline} fill="none" stroke="#7c3aed" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+                    )}
+                    {/* Dots + labels */}
+                    {pts.map(([x, y], i) => (
+                      <g key={i}>
+                        <circle cx={x} cy={y} r="3.5" fill="#7c3aed" stroke="#1e1b4b" strokeWidth="1.5" />
+                        <text x={x} y={H} fill="rgba(167,139,250,0.7)" fontSize="9" textAnchor="middle" dy="10">
+                          {last6[i][0].slice(0, 3)}
+                        </text>
+                        <text x={x} y={y - 7} fill="white" fontSize="9" textAnchor="middle" fontWeight="600">
+                          {'$' + (last6[i][1] >= 1000 ? (last6[i][1] / 1000).toFixed(1) + 'k' : last6[i][1].toFixed(0))}
+                        </text>
+                      </g>
+                    ))}
+                  </svg>
+                </div>
+
+                {/* Divider */}
+                {byMonth.length > 0 && <div className="border-t border-white/10 pt-3">
+                  <p className="text-purple-400 text-xs font-semibold mb-2.5">All months</p>
+                  <div className="space-y-1.5">
+                    {byMonth.map(([month, val]) => (
+                      <div key={month} className="flex items-center gap-2">
+                        <span className="text-purple-400 text-xs w-9 shrink-0">{month.slice(0,3)}</span>
+                        <div className="flex-1 bg-white/8 rounded-full h-5 overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-violet-500 to-purple-400 rounded-full flex items-center justify-end pr-2 transition-all"
+                            style={{ width: ((val / maxMonthVal) * 100) + '%', minWidth: 40 }}>
+                            <span className="text-white/80 text-[10px] font-bold">{'$' + val.toFixed(0)}</span>
+                          </div>
+                        </div>
+                        <span className="text-purple-500 text-xs w-16 text-right shrink-0">{'$' + val.toFixed(2)}</span>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
+                </div>}
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Controls */}
           <div className="flex flex-wrap items-center gap-2">

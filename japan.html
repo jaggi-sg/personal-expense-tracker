@@ -1,0 +1,1672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Japan Trip Itinerary — July 21 to August 2</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+  :root {
+    --red: #C1121F;
+    --red-light: #FDECEA;
+    --red-mid: #E85D5D;
+    --gold: #C9A84C;
+    --gold-light: #FDF6E3;
+    --ink: #1A1A1A;
+    --ink-soft: #3D3D3D;
+    --muted: #6B6B6B;
+    --border: #E5E0D8;
+    --bg: #FAFAF8;
+    --white: #FFFFFF;
+    --green: #2D6A4F;
+    --green-light: #E8F5EE;
+    --blue: #1A4F8A;
+    --blue-light: #E8F0FA;
+    --orange: #C05010;
+    --orange-light: #FDF0E8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+    font-size: 15px;
+  }
+
+  /* HERO */
+  .hero {
+    background: var(--ink);
+    color: var(--white);
+    padding: 60px 40px 50px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(193,18,31,0.04) 40px, rgba(193,18,31,0.04) 80px);
+  }
+  .hero-tag {
+    display: inline-block;
+    background: var(--red);
+    color: var(--white);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 5px 16px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 14px;
+    position: relative;
+  }
+  .hero h1 span { color: var(--gold); }
+  .hero-sub {
+    font-size: 16px;
+    color: rgba(255,255,255,0.7);
+    max-width: 520px;
+    margin: 0 auto 28px;
+    position: relative;
+  }
+  .hero-dates {
+    display: inline-flex;
+    gap: 0;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+  }
+  .hero-date {
+    padding: 10px 24px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .hero-date:first-child { border-right: 1px solid rgba(255,255,255,0.2); }
+  .hero-date .label { color: rgba(255,255,255,0.5); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; display: block; margin-bottom: 2px; }
+
+  /* LAYOUT */
+  .page { max-width: 900px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* SECTION HEADINGS */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 48px 0 20px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--red);
+  }
+  .section-icon {
+    width: 36px; height: 36px;
+    background: var(--red);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 16px;
+    flex-shrink: 0;
+  }
+  .section-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .section-header .count {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  /* ALERT BANNERS */
+  .alert {
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    margin-bottom: 14px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .alert-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .alert.warning { background: #FFF8E6; border-left: 3px solid var(--gold); color: #7A5C00; }
+  .alert.info { background: var(--blue-light); border-left: 3px solid var(--blue); color: #0D3464; }
+  .alert.success { background: var(--green-light); border-left: 3px solid var(--green); color: #1A4530; }
+  .alert.danger { background: var(--red-light); border-left: 3px solid var(--red); color: #7A0010; }
+  .alert strong { font-weight: 600; }
+
+  /* DAY CARDS */
+  .day-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .day-header {
+    display: flex;
+    align-items: stretch;
+    background: var(--ink);
+    color: var(--white);
+  }
+  .day-num {
+    background: var(--red);
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 76px;
+    flex-shrink: 0;
+  }
+  .day-num .num {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .day-num .word {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    opacity: 0.8;
+  }
+  .day-info {
+    padding: 14px 20px;
+    flex: 1;
+  }
+  .day-info .date { font-size: 12px; color: rgba(255,255,255,0.55); letter-spacing: 0.5px; }
+  .day-info .title {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--white);
+    margin-top: 2px;
+  }
+  .day-info .city {
+    display: inline-block;
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.8);
+    font-size: 11px;
+    padding: 2px 10px;
+    border-radius: 12px;
+    margin-top: 5px;
+    font-weight: 500;
+  }
+  .day-body { padding: 20px 24px; }
+
+  /* TIMELINE */
+  .timeline { position: relative; }
+  .tl-item {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 14px;
+    align-items: flex-start;
+  }
+  .tl-item:last-child { margin-bottom: 0; }
+  .tl-time {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--red);
+    min-width: 52px;
+    padding-top: 2px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .tl-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--red);
+    margin-top: 6px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .tl-dot::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 3px;
+    width: 1px;
+    height: calc(100% + 14px - 8px);
+    background: var(--border);
+  }
+  .tl-item:last-child .tl-dot::after { display: none; }
+  .tl-content { flex: 1; }
+  .tl-content .act {
+    font-weight: 500;
+    font-size: 14.5px;
+    color: var(--ink);
+    line-height: 1.35;
+  }
+  .tl-content .desc {
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-top: 2px;
+    line-height: 1.45;
+  }
+  .tl-content .tip {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 11.5px;
+    background: var(--gold-light);
+    color: #7A5C00;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  .tl-content .transport {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11.5px;
+    background: var(--blue-light);
+    color: var(--blue);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-top: 4px;
+    font-weight: 500;
+  }
+
+  /* SUMMARY ROW */
+  .day-summary {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 12px 24px;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+  }
+  .tag {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  .tag-culture { background: #EFF6FF; color: #1E4DAC; }
+  .tag-food { background: #FFF4E6; color: #9A4500; }
+  .tag-nature { background: var(--green-light); color: var(--green); }
+  .tag-shopping { background: #F3EEFF; color: #5B21B6; }
+  .tag-activity { background: var(--red-light); color: var(--red); }
+  .tag-relax { background: #F0FDF4; color: #166534; }
+
+  /* TRAVEL DAY */
+  .travel-bar {
+    background: #F5F0FF;
+    border: 1px dashed #9775FA;
+    border-radius: 10px;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: #4C1D95;
+  }
+  .travel-bar .arrow { font-size: 18px; }
+
+  /* NOTES BOX */
+  .notes-box {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 22px;
+    margin-bottom: 16px;
+  }
+  .notes-box h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .notes-box ul { list-style: none; }
+  .notes-box ul li {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .notes-box ul li:last-child { border-bottom: none; }
+  .notes-box ul li .bullet { color: var(--red); font-weight: 700; flex-shrink: 0; }
+
+  /* VISA SECTION */
+  .visa-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .visa-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .visa-card h4 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .visa-card p {
+    font-size: 14px;
+    color: var(--ink);
+    font-weight: 500;
+    line-height: 1.45;
+  }
+  .visa-card .highlight { color: var(--red); font-weight: 600; }
+
+  /* CHECKLIST */
+  .checklist {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    padding: 8px 12px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .check-item .ci { color: var(--green); font-weight: 700; flex-shrink: 0; font-size: 15px; }
+
+  /* FOOD SECTION */
+  .food-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+  }
+  .food-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .food-card .icon { font-size: 22px; margin-bottom: 6px; }
+  .food-card .name { font-weight: 600; font-size: 14px; color: var(--ink); margin-bottom: 3px; }
+  .food-card .where { font-size: 12px; color: var(--muted); }
+
+  /* TIPS GRID */
+  .tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+    margin-top: 12px;
+  }
+  .tip-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .tip-card .tip-icon { font-size: 24px; margin-bottom: 8px; }
+  .tip-card h4 { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
+  .tip-card p { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+
+  /* DIVIDER */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 32px 0;
+  }
+
+  /* FOOTER */
+  .footer {
+    text-align: center;
+    padding: 32px;
+    font-size: 12px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+  }
+
+  @media print {
+    .hero { padding: 30px 24px; }
+    .page { padding: 20px; }
+    .day-card { break-inside: avoid; }
+  }
+
+  @media (max-width: 600px) {
+    .hero { padding: 40px 20px; }
+    .page { padding: 24px 16px; }
+    .day-body { padding: 16px; }
+    .day-summary { padding: 10px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">✈ Your Japan Adventure</div>
+  <h1>Journey to <span>Japan</span></h1>
+  <p class="hero-sub">A curated 13-day itinerary drawn from four expert sources — tailored for summer 2026</p>
+  <div class="hero-dates">
+    <div class="hero-date">
+      <span class="label">Arrive NRT</span>
+      July 21 · 2:30 PM
+    </div>
+    <div class="hero-date">
+      <span class="label">Depart NRT</span>
+      August 2 · 5:00 PM
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- SUMMER WARNINGS -->
+  <div class="section-header">
+    <div class="section-icon">⚠</div>
+    <h2>Before You Go — Summer Essentials</h2>
+  </div>
+
+  <div class="alert warning">
+    <span class="alert-icon">☀️</span>
+    <div><strong>Extreme heat alert:</strong> Tokyo, Kyoto &amp; Osaka will be 31–34°C (88–93°F) with high humidity. Plan all outdoor sightseeing for early morning (8–10 AM) or evening (after 6 PM). Carry a cooling towel, handheld fan, and sunscreen. Stay hydrated constantly.</div>
+  </div>
+  <div class="alert danger">
+    <span class="alert-icon">🏮</span>
+    <div><strong>Obon season (Aug 13–16):</strong> Japan's biggest holiday — millions travel domestically. Your trip ends Aug 2, so you narrowly avoid the peak rush but Aug 1–2 will see increasing domestic travel. Book all Shinkansen seats in advance. Hotels near NRT on Aug 1–2 should be reserved now.</div>
+  </div>
+  <div class="alert info">
+    <span class="alert-icon">🎆</span>
+    <div><strong>Summer festivals:</strong> You arrive during matsuri season — expect fireworks, Bon Odori dances, and street food stalls at nearly every location. This is Japan at its most festive. Check local festival dates and plan evenings around them.</div>
+  </div>
+  <div class="alert success">
+    <span class="alert-icon">🚄</span>
+    <div><strong>Transport tip:</strong> Get a Suica card at the airport on arrival. For Shinkansen travel (Tokyo→Kyoto→Osaka), buy point-to-point tickets in advance. A 7-day JR Pass is rarely cost-effective for this itinerary — calculate before buying.</div>
+  </div>
+
+  <!-- ====================== ITINERARY DAYS ====================== -->
+  <div class="section-header">
+    <div class="section-icon">📅</div>
+    <h2>Day-by-Day Itinerary</h2>
+    <span class="count">13 Days · 4 Cities</span>
+  </div>
+
+  <!-- DAY 1 -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-num"><span class="num">1</span><span class="word">Day</span></div>
+      <div class="day-info">
+        <div class="date">Monday, July 21</div>
+        <div class="title">Arrival &amp; First Night Lights</div>
+        <span class="city">📍 Tokyo</span>
+      </div>
+    </div>
+    <div class="day-body">
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-time">2:30 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Land at Narita Airport (NRT)</div>
+            <div class="desc">Clear customs, collect luggage, get a Suica card at the airport vending machine. Exchange some cash here.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">3:30 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Narita Express (N'EX) to Tokyo Station</div>
+            <div class="desc">~60 minutes. Connects to Yamanote Line for hotel drop-off.</div>
+            <div class="transport">🚃 Narita Express → Tokyo Station</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">5:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Hotel check-in &amp; freshen up</div>
+            <div class="desc">Recommended base: Shinjuku or Shibuya area for easy access throughout your stay.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">7:30 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Evening walk: Shinjuku + Tokyo Metropolitan Government Building</div>
+            <div class="desc">The free observation deck (open till ~10 PM, 202m) offers panoramic night views of Tokyo — perfect first-night activity. The Night &amp; Light projection mapping show runs on the façade.</div>
+            <div class="tip">✨ Free entry to observation deck</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">9:30 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Explore Omoide Yokocho (Memory Lane)</div>
+            <div class="desc">Narrow alley near Shinjuku Station with tiny atmospheric izakayas and yakitori stalls. Great easy dinner after a long flight.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="day-summary">
+      <span class="tag tag-culture">Arrival Day</span>
+      <span class="tag tag-food">Izakaya Dinner</span>
+      <span class="tag tag-activity">Night Views</span>
+    </div>
+  </div>
+
+  <!-- DAY 2 -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-num"><span class="num">2</span><span class="word">Day</span></div>
+      <div class="day-info">
+        <div class="date">Tuesday, July 22</div>
+        <div class="title">Harajuku, Meiji Shrine &amp; Shibuya Sky</div>
+        <span class="city">📍 Tokyo</span>
+      </div>
+    </div>
+    <div class="day-body">
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-time">8:00 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Meiji Jingu Shrine</div>
+            <div class="desc">Arrive early before the heat peaks. A peaceful forested shrine dedicated to Emperor Meiji — dramatic contrast to the city. 20–30 min walk through the wooded path.</div>
+            <div class="tip">🌿 Best before 9 AM when it's cool and quiet</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">9:30 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Takeshita Street (Harajuku)</div>
+            <div class="desc">Colorful youth fashion street, quirky shops, famous crepes. The weekend vibe is electric. Pick up unique fashion items or try the cotton candy crepes.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">11:00 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Omotesando &amp; shopping</div>
+            <div class="desc">Tokyo's Champs-Élysées — upscale boutiques, beautiful tree-lined boulevard, great architecture. Duck into any air-conditioned store to escape the midday heat.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">12:30 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Lunch break (indoors)</div>
+            <div class="desc">Try Hoshino Cafe for fruit crepe cake, or explore Omotesando Hills food floor. Rest during the hottest part of the day (12–3 PM).</div>
+            <div class="tip">🌡 Peak heat: stay indoors 12–3 PM</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">3:30 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Shibuya Crossing</div>
+            <div class="desc">Walk the world's busiest intersection. Hachiko statue photo op. Explore surrounding shops (Mega Don Quijote for snacks &amp; novelties).</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">5:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Shibuya Sky — sunset slot 🎫 Pre-book required</div>
+            <div class="desc">Rooftop observation deck with unobstructed 360° views including Mt. Fuji on clear evenings. The sunset hour is the best time. Book online in advance — tickets sell out.</div>
+            <div class="tip">🎟 Book at least 2 weeks ahead</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">7:30 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Dinner at Gonpachi Nishi-Azabu ("Kill Bill" restaurant) or local ramen</div>
+            <div class="desc">Iconic multilevel izakaya. Alternatively, Vegan Bistro Jangara for plant-based Japanese. Then explore Shibuya nightlife.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="day-summary">
+      <span class="tag tag-culture">Shrine Visit</span>
+      <span class="tag tag-shopping">Harajuku</span>
+      <span class="tag tag-activity">Shibuya Sky</span>
+      <span class="tag tag-food">Izakaya</span>
+    </div>
+  </div>
+
+  <!-- DAY 3 -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-num"><span class="num">3</span><span class="word">Day</span></div>
+      <div class="day-info">
+        <div class="date">Wednesday, July 23</div>
+        <div class="title">Asakusa, Kimono &amp; Akihabara Nights</div>
+        <span class="city">📍 Tokyo</span>
+      </div>
+    </div>
+    <div class="day-body">
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-time">7:30 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Asakusa &amp; Senso-ji Temple</div>
+            <div class="desc">Tokyo's oldest temple. Arrive early to beat both the heat and the crowds. Thunder Gate (Kaminarimon), Nakamise shopping street with traditional snacks and souvenirs.</div>
+            <div class="tip">⛩ Arrive by 8 AM for the best experience</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">9:30 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Kimono rental experience 🎫 Pre-book</div>
+            <div class="desc">Rent and dress in a kimono, walk through the historic Asakusa streets. Photo opportunities at the temple with traditional dress. 2–3 hours experience.</div>
+            <div class="tip">👘 Book Kimono rental in advance (many shops in Asakusa)</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">12:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Japanese curry lunch</div>
+            <div class="desc">Coco Ichibanya (chain, reliable and customizable) or a local curry house. Classic Japanese comfort food — thick curry with rice and katsu.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">1:30 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Indoor break (hotel/café) — midday heat</div>
+            <div class="desc">Ideal time to rest or try cloud-shaped desserts at Kumonocha, or catch up on planning.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">3:30 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Akihabara</div>
+            <div class="desc">Anime, manga, and electronics hub. Multi-floor arcades, themed cafés (maid cafés), retro game shops. A unique Tokyo experience whether you're a fan or not.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">7:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Shinjuku nightlife — Kabukicho &amp; Golden Gai</div>
+            <div class="desc">Godzilla building, the neon 3D cat billboard, Golden Gai's tiny atmospheric bars. Night in Shinjuku is unmatched energy.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="day-summary">
+      <span class="tag tag-culture">Temple + Kimono</span>
+      <span class="tag tag-shopping">Akihabara</span>
+      <span class="tag tag-food">Japanese Curry</span>
+      <span class="tag tag-activity">Nightlife</span>
+    </div>
+  </div>
+
+  <!-- DAY 4 -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-num"><span class="num">4</span><span class="word">Day</span></div>
+      <div class="day-info">
+        <div class="date">Thursday, July 24</div>
+        <div class="title">Mt. Fuji Day Trip — Kawaguchiko</div>
+        <span class="city">📍 Fuji Five Lakes Region</span>
+      </div>
+    </div>
+    <div class="day-body">
+      <div class="alert warning">
+        <span class="alert-icon">⛅</span>
+        <div><strong>Summer visibility:</strong> Mt. Fuji is often cloud-covered in July–August. Check the weather 2–3 days ahead. Even without a full Fuji view, the Kawaguchiko area is beautiful.</div>
+      </div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-time">7:00 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Depart Shinjuku Station — direct highway bus to Kawaguchiko 🎫</div>
+            <div class="desc">Approx. 2 hours by Keio bus. Book online in advance. Or join a guided day tour from Shinjuku for convenience (recommended in summer to handle logistics).</div>
+            <div class="transport">🚌 Shinjuku → Kawaguchiko Station (~2 hrs)</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">9:15 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Kawaguchiko Lake &amp; Oishi Park</div>
+            <div class="desc">Lakeside park with unobstructed Fuji views on clear days. Lavender may still be in bloom in late July. Take the retro bus around the lake.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">11:00 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Arakurayama Sengen Park</div>
+            <div class="desc">Iconic view — five-story pagoda with Mt. Fuji backdrop. 398 stone steps (strenuous in summer heat). Best on clear mornings.</div>
+            <div class="tip">💪 Bring water — steep climb in summer heat</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">12:30 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Lunch &amp; Oshino Hakkai</div>
+            <div class="desc">Eight spring pools fed by Mt. Fuji snowmelt — crystal clear water with koi carp. Charming traditional village with local food stalls.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">3:30 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Return bus to Shinjuku</div>
+            <div class="transport">🚌 Kawaguchiko → Shinjuku (~2 hrs)</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">7:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Relax dinner — ramen or sushi near hotel</div>
+            <div class="desc">It's a long day. Ichiran Ramen (private booth solo ramen) or a nearby sushi counter. Early night before tomorrow's TeamLab.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="day-summary">
+      <span class="tag tag-nature">Mt. Fuji Region</span>
+      <span class="tag tag-culture">Pagoda &amp; Shrine</span>
+      <span class="tag tag-activity">Day Trip</span>
+    </div>
+  </div>
+
+  <!-- DAY 5 -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-num"><span class="num">5</span><span class="word">Day</span></div>
+      <div class="day-info">
+        <div class="date">Friday, July 25</div>
+        <div class="title">TeamLab Planets, Ginza &amp; Tokyo Tower</div>
+        <span class="city">📍 Tokyo</span>
+      </div>
+    </div>
+    <div class="day-body">
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-time">9:00 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">TeamLab Planets — Toyosu 🎫 Pre-book required</div>
+            <div class="desc">Immersive digital art museum — go in the morning to beat afternoon crowds. Bare feet, wade through water rooms, infinity flower gardens, and mind-bending light installations. Approx. 90 min.</div>
+            <div class="tip">🎟 Book weeks ahead — often sells out</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">11:30 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Odaiba quick visit (optional)</div>
+            <div class="desc">DiverCity Tokyo (Gundam statue), Odaiba Seaside Park with Rainbow Bridge views. Keep it brief as midday heat will be intense.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">1:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Lunch &amp; rest (escape the heat indoors)</div>
+            <div class="desc">Eggs &amp; Things in Odaiba, or head to Ginza early for lunch at a department store food hall.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">3:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Ginza exploration</div>
+            <div class="desc">Tokyo's luxury shopping district — flagship stores, beautiful architecture, Itoya stationery wonderland. Enjoy the air conditioning.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">5:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Tokyo Tower</div>
+            <div class="desc">Classic red-and-white landmark inspired by the Eiffel Tower. Go up at sunset — the views of Tokyo lights coming on are stunning. Better value than Skytree for the iconic photo.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">7:30 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Dinner at Starbucks Reserve Roastery Nakameguro + evening walk</div>
+            <div class="desc">Nakameguro Canal at night is one of Tokyo's most beautiful spots. Lined with cool cafés and boutiques. The Starbucks Reserve is a destination in itself.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="day-summary">
+      <span class="tag tag-activity">TeamLab Art</span>
+      <span class="tag tag-shopping">Ginza</span>
+      <span class="tag tag-culture">Tokyo Tower</span>
+      <span class="tag tag-nature">Nakameguro Canal</span>
+    </div>
+  </div>
+
+  <!-- TRAVEL DAY -->
+  <div class="travel-bar">
+    <span class="arrow">🚄</span>
+    <div><strong>Travel Day (included in Day 6 morning):</strong> Shinkansen from Tokyo Station to Kyoto — approx. 2h 20min on Hikari/Nozomi. Book reserved seats in advance.</div>
+  </div>
+
+  <!-- DAY 6 -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-num"><span class="num">6</span><span class="word">Day</span></div>
+      <div class="day-info">
+        <div class="date">Saturday, July 26</div>
+        <div class="title">Arashiyama — Bamboo, Boat &amp; Temples</div>
+        <span class="city">📍 Kyoto</span>
+      </div>
+    </div>
+    <div class="day-body">
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-time">7:00 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Shinkansen: Tokyo → Kyoto</div>
+            <div class="transport">🚄 Tokyo Stn → Kyoto Stn (2h 20min)</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">9:30 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Hotel check-in / luggage drop in Kyoto</div>
+            <div class="desc">Recommended area: Kawaramachi or Gion for easy access to everything.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">10:00 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Sagano Scenic Railway (Romantic Train) 🎫 Book in advance</div>
+            <div class="desc">25-min scenic train ride through forested valleys along the Hozu River. One-way to Kameoka, then optional boat ride back. Open-air carriages — breezy even in summer.</div>
+            <div class="transport">🚃 JR San-In Line to Saga-Arashiyama</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">12:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Hozugawa River Cruise 🎫 Book in advance</div>
+            <div class="desc">2-hour traditional boat ride through mountain gorges back to Arashiyama. Stunning natural scenery. One of the most memorable experiences in Kyoto.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">2:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Arashiyama Bamboo Grove</div>
+            <div class="desc">Iconic towering bamboo tunnels. Go mid-afternoon when tour groups thin out. Short but unmissable. Continue to Tenryu-ji Garden nearby.</div>
+            <div class="tip">📸 Best photos with fewer people after 2 PM</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">3:30 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Brunch/late lunch: Yudofu Sagano</div>
+            <div class="desc">Famous tofu cuisine restaurant in Arashiyama — deeply Kyoto, light and refreshing for a hot day.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">5:30 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Return to Gion &amp; Hanamikoji Street evening walk</div>
+            <div class="desc">The traditional geisha district comes alive at dusk — wooden machiya townhouses, stone-paved lanes, lantern-lit streets. Possibility of spotting a geiko or maiko.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">7:30 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Dinner at Issen Yoshoku or local Gion izakaya</div>
+            <div class="desc">Issen Yoshoku is a quirky restaurant serving only one dish (okonomiyaki) with an entertaining interior. Or try L'Escamoteur for creative cocktails after dinner.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="day-summary">
+      <span class="tag tag-nature">Bamboo Grove</span>
+      <span class="tag tag-activity">River Cruise</span>
+      <span class="tag tag-culture">Gion District</span>
+      <span class="tag tag-food">Tofu Cuisine</span>
+    </div>
+  </div>
+
+  <!-- DAY 7 -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-num"><span class="num">7</span><span class="word">Day</span></div>
+      <div class="day-info">
+        <div class="date">Sunday, July 27</div>
+        <div class="title">Fushimi Inari, Uji Matcha &amp; Kinkaku-ji</div>
+        <span class="city">📍 Kyoto + Uji</span>
+      </div>
+    </div>
+    <div class="day-body">
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-time">7:00 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Fushimi Inari Shrine</div>
+            <div class="desc">Famous for thousands of vermilion torii gates climbing Mt. Inari. Hike as far as you like — even 30 minutes in reveals stunning tunnels of gates. Go at sunrise to avoid crowds and heat.</div>
+            <div class="tip">🌄 MUST go before 8 AM in summer — gets unbearably hot by 10 AM</div>
+            <div class="transport">🚃 JR Nara Line → Inari Stn (5 min from Kyoto)</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">10:30 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Day trip to Uji — Matcha capital of Japan</div>
+            <div class="transport">🚃 JR Nara Line → Uji Stn (~15 min from Inari)</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">11:00 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Byodo-in Temple (UNESCO World Heritage)</div>
+            <div class="desc">11th-century temple on a pond — the image on the 10-yen coin. Beautiful grounds, serene atmosphere.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">12:30 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Matcha lunch at Itoh Kyuemon or Nakamura Tokichi Honten</div>
+            <div class="desc">Both historic tea shops with matcha-infused everything — noodles, parfaits, soft serve, wagashi sweets. Deeply Uji, deeply Kyoto.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">2:30 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Kinkaku-ji — Golden Pavilion</div>
+            <div class="desc">Kyoto's most iconic sight — a golden Zen temple reflected in a mirror pond. Spectacular in afternoon light. Lines move fast despite crowds. Worth every minute.</div>
+            <div class="transport">🚃 Return to Kyoto Stn → Kyoto City Bus to Kinkaku-ji</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">5:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Nishiki Market ("Kyoto's Kitchen")</div>
+            <div class="desc">Narrow covered market with hundreds of food stalls — pickled vegetables, fresh mochi, grilled skewers, street food. Great for grazing and souvenir shopping.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">7:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Kaiseki dinner at Kikunoi (or local alternative)</div>
+            <div class="desc">Traditional Kyoto multi-course fine dining — seasonal ingredients, exquisite presentation. Reserve in advance. One splurge meal worth it in Kyoto.</div>
+            <div class="tip">🍽 Book reservation well in advance</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="day-summary">
+      <span class="tag tag-culture">Fushimi Inari</span>
+      <span class="tag tag-food">Matcha Uji</span>
+      <span class="tag tag-culture">Golden Pavilion</span>
+      <span class="tag tag-food">Kaiseki</span>
+    </div>
+  </div>
+
+  <!-- DAY 8 -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-num"><span class="num">8</span><span class="word">Day</span></div>
+      <div class="day-info">
+        <div class="date">Monday, July 28</div>
+        <div class="title">Kyoto to Osaka — Castle, Dotonbori &amp; USJ</div>
+        <span class="city">📍 Osaka</span>
+      </div>
+    </div>
+    <div class="day-body">
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-time">9:00 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Check out Kyoto → travel to Osaka</div>
+            <div class="transport">🚃 JR Special Rapid → Osaka Stn (~30 min)</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">10:00 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Hotel check-in / luggage drop in Osaka</div>
+            <div class="desc">Stay near Namba or Shinsaibashi for best access. Cross Hotel Osaka is excellent value near the action.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">10:30 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Osaka Castle &amp; Osaka Castle Park</div>
+            <div class="desc">Impressive 16th-century castle with a museum inside and moat gardens. Best in morning before heat peaks. The park has beautiful green spaces.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">12:30 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Lunch at Shinsaibashi</div>
+            <div class="desc">Ichiran Ramen for solo-booth ramen experience, or explore Dotonbori street food: Takoyaki (octopus balls), Okonomiyaki, Kushikatsu.</div>
+            <div class="tip">🐙 Takoyaki is a Osaka must-eat</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">2:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Ninja Experience Café — Dotonbori 🎫 Book ahead</div>
+            <div class="desc">Unique themed dining experience with ninja performances, interactive tricks, and Japanese fusion food. Great fun, especially with groups.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">4:30 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Dotonbori &amp; Shinsekai evening</div>
+            <div class="desc">Neon lights, the Glico running man sign, canal reflections, street performers. Walk to Shinsekai for the retro Tsutenkaku Tower and old-school Osaka atmosphere.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">7:30 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Dinner at Dotonbori izakaya + Namba Yasaka Shrine</div>
+            <div class="desc">The giant lion-head shrine is dramatic at night and rarely crowded. Then explore Namba nightlife.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="day-summary">
+      <span class="tag tag-culture">Osaka Castle</span>
+      <span class="tag tag-food">Dotonbori Street Food</span>
+      <span class="tag tag-activity">Ninja Café</span>
+      <span class="tag tag-activity">Nightlife</span>
+    </div>
+  </div>
+
+  <!-- DAY 9 -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-num"><span class="num">9</span><span class="word">Day</span></div>
+      <div class="day-info">
+        <div class="date">Tuesday, July 29</div>
+        <div class="title">Universal Studios Japan 🎢</div>
+        <span class="city">📍 Osaka — USJ</span>
+      </div>
+    </div>
+    <div class="day-body">
+      <div class="alert info">
+        <span class="alert-icon">🎡</span>
+        <div><strong>Full day at USJ:</strong> Super Nintendo World, The Wizarding World of Harry Potter, Hollywood Dream roller coaster. Book Express Passes and park entry well in advance — summer is peak season with long lines. Arrive at park opening (usually 8:30 AM).</div>
+      </div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-time">8:00 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Travel to USJ</div>
+            <div class="transport">🚃 JR Osaka Loop Line → Universal City Stn (~15 min from Osaka Stn)</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">8:30 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Full day at Universal Studios Japan</div>
+            <div class="desc">Super Nintendo World (Mario Kart ride, Donkey Kong area), Wizarding World of Harry Potter (Forbidden Journey ride, Butterbeer), Minion Park, Hollywood Dream. Stay for the evening light parade.</div>
+            <div class="tip">🎫 Express Pass dramatically reduces wait times — worth buying for summer</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">8:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Return to hotel — well-earned rest</div>
+            <div class="transport">🚃 Universal City → Osaka Stn</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="day-summary">
+      <span class="tag tag-activity">Full Day USJ</span>
+      <span class="tag tag-activity">Super Nintendo World</span>
+      <span class="tag tag-activity">Harry Potter</span>
+    </div>
+  </div>
+
+  <!-- DAY 10 -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-num"><span class="num">10</span><span class="word">Day</span></div>
+      <div class="day-info">
+        <div class="date">Wednesday, July 30</div>
+        <div class="title">Nara Day Trip — Deer &amp; Todai-ji</div>
+        <span class="city">📍 Nara (day trip from Osaka)</span>
+      </div>
+    </div>
+    <div class="day-body">
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-time">8:30 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Travel to Nara</div>
+            <div class="transport">🚃 Kintetsu Nara Line from Namba → Kintetsu Nara Stn (~35 min)</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">9:15 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Nara Deer Park</div>
+            <div class="desc">Over 1,200 wild sika deer roam freely. They bow to request shika senbei (deer crackers)! Unique and magical experience. Visit before the midday heat makes the deer retreat to shade.</div>
+            <div class="tip">🦌 Buy deer crackers at the park entrance — ¥200</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">10:30 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Todai-ji Temple — Great Buddha Hall</div>
+            <div class="desc">Japan's largest wooden building housing a 15-meter bronze Buddha. UNESCO World Heritage. The scale is awe-inspiring. Try squeezing through the nostril pillar for good luck.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">12:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Naramachi — preserved merchant district &amp; lunch</div>
+            <div class="desc">Traditional townhouses, craft shops, cafés. Try mochi at a local shop. Calm, cultural atmosphere unlike any big city.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">2:30 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Return to Osaka</div>
+            <div class="transport">🚃 Kintetsu Nara → Namba (~35 min)</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">4:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Umeda Sky Building — Floating Garden Observatory</div>
+            <div class="desc">Futuristic connected twin towers with a rooftop ring offering panoramic Osaka views. Beautiful at sunset. The underground "Showa-era retro" dining area is a bonus.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">7:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Dinner at Umeda Sky Building + Hep5 Ferris Wheel</div>
+            <div class="desc">Rooftop dining with evening views. Then the red Hep5 Ferris Wheel on Umeda shopping complex gives city views and is an Osaka icon.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="day-summary">
+      <span class="tag tag-nature">Deer Park</span>
+      <span class="tag tag-culture">Great Buddha</span>
+      <span class="tag tag-activity">Sky Observatory</span>
+      <span class="tag tag-food">Local Mochi</span>
+    </div>
+  </div>
+
+  <!-- DAY 11 -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-num"><span class="num">11</span><span class="word">Day</span></div>
+      <div class="day-info">
+        <div class="date">Thursday, July 31</div>
+        <div class="title">Osaka Wrap-up &amp; Shopping Day</div>
+        <span class="city">📍 Osaka</span>
+      </div>
+    </div>
+    <div class="day-body">
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-time">9:00 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Kuromon Ichiba Market ("Osaka's Kitchen")</div>
+            <div class="desc">Bustling covered market with fresh seafood, wagyu beef, local produce. Excellent for a market breakfast of grilled scallops, fresh sushi, or tamagoyaki.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">10:30 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Shinsaibashi &amp; Amerika-Mura shopping</div>
+            <div class="desc">Covered shopping arcade — Japanese fashion, cosmetics (Lush, Innisfree, Shiseido), electronics, Don Quijote for souvenirs. Amerika-Mura for vintage and streetwear.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">1:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Cup Noodles Museum Osaka — Ikeda</div>
+            <div class="desc">Create your own custom instant noodles. Surprisingly engaging museum about the history of Cup Noodles. Fun, unique, and delicious.</div>
+            <div class="transport">🚃 Hankyu Takarazuka Line → Ikeda Stn (~25 min from Umeda)</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">4:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Final Dotonbori stroll &amp; souvenir shopping</div>
+            <div class="desc">Last chance for Osaka street food — taiyaki, okonomiyaki, fresh crepes. Don Quijote for omiyage (souvenir gifts) and snacks to bring home.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">7:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Farewell dinner in Osaka</div>
+            <div class="desc">Splurge at a teppanyaki restaurant, or enjoy casual Osaka street food one last time. Osaka is Japan's food capital — savor it.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="day-summary">
+      <span class="tag tag-shopping">Final Shopping</span>
+      <span class="tag tag-food">Kuromon Market</span>
+      <span class="tag tag-activity">Cup Noodles Museum</span>
+      <span class="tag tag-food">Farewell Dinner</span>
+    </div>
+  </div>
+
+  <!-- DAY 12 -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-num"><span class="num">12</span><span class="word">Day</span></div>
+      <div class="day-info">
+        <div class="date">Friday, August 1</div>
+        <div class="title">Return to Tokyo — Pokémon + Last Moments</div>
+        <span class="city">📍 Tokyo (Final Stay)</span>
+      </div>
+    </div>
+    <div class="day-body">
+      <div class="alert warning">
+        <span class="alert-icon">🏮</span>
+        <div><strong>Obon travel begins:</strong> Aug 1–2 sees increasing domestic travel. Your Shinkansen back to Tokyo should be reserved. Book a hotel near NRT (Narita) or central Tokyo for easy airport access tomorrow.</div>
+      </div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-time">9:00 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Check out &amp; Shinkansen: Osaka → Tokyo</div>
+            <div class="transport">🚄 Osaka Stn → Tokyo Stn (~2.5 hrs)</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">12:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Lunch at Ramen Street — Tokyo Station B1</div>
+            <div class="desc">Eight top ramen shops under Tokyo Station. Perfect for a quick, incredible bowl before exploring.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">2:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Pokémon Center Mega Tokyo — Ikebukuro</div>
+            <div class="desc">The largest Pokémon store in the world. Inside Sunshine City mall. Must-visit for any fan — exclusive merchandise, plushies, games.</div>
+            <div class="transport">🚃 JR Yamanote Line → Ikebukuro (~5 min from Tokyo Stn)</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">4:30 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Last-minute Akihabara or Shibuya shopping</div>
+            <div class="desc">Electronics, anime goods, Japanese cosmetics, fashion. Last chance for anything you missed.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">7:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Final Tokyo dinner</div>
+            <div class="desc">Sushi at a conveyor belt restaurant for a casual farewell, or Yakiniku (BBQ) for a celebratory last meal in Japan.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">9:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Return to hotel &amp; pack for departure</div>
+            <div class="desc">Hotel near Narita (e.g., Narita Excel Hotel Tokyu) strongly recommended to make the 5 PM departure stress-free tomorrow.</div>
+            <div class="tip">🛌 Stay near NRT tonight for easy airport access</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="day-summary">
+      <span class="tag tag-shopping">Pokémon Center</span>
+      <span class="tag tag-food">Ramen Street</span>
+      <span class="tag tag-shopping">Last Shopping</span>
+    </div>
+  </div>
+
+  <!-- DAY 13 -->
+  <div class="day-card">
+    <div class="day-header">
+      <div class="day-num"><span class="num">13</span><span class="word">Day</span></div>
+      <div class="day-info">
+        <div class="date">Saturday, August 2</div>
+        <div class="title">Departure Day</div>
+        <span class="city">✈ NRT — Departure 5:00 PM</span>
+      </div>
+    </div>
+    <div class="day-body">
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-time">9:00 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Hotel checkout &amp; travel to NRT</div>
+            <div class="desc">If staying near Narita: 15–20 min. If staying in central Tokyo: ~60–90 min by N'EX or Limousine Bus. Factor in check-in time.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">11:00 AM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Arrive at NRT — airport shopping &amp; lunch</div>
+            <div class="desc">Narita Airport has excellent shopping in the departure area — final omiyage, snacks, Japanese whisky duty-free, cosmetics. Many excellent food options airside.</div>
+            <div class="tip">🛍 Great duty-free: Royce chocolate, Tokyo Banana, KitKat flavors</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">2:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Proceed through security &amp; immigration</div>
+            <div class="desc">NRT can have long lines. Allow at least 2–2.5 hours before departure for international flights.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">5:00 PM</div>
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="act">Sayōnara, Japan ✈</div>
+            <div class="desc">Departure from Narita Airport.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="day-summary">
+      <span class="tag tag-shopping">Airport Shopping</span>
+      <span class="tag tag-activity">Departure</span>
+    </div>
+  </div>
+
+  <!-- ====================== VISA SECTION ====================== -->
+  <div class="section-header">
+    <div class="section-icon">🛂</div>
+    <h2>Visa Information</h2>
+  </div>
+
+  <div class="alert info">
+    <span class="alert-icon">ℹ️</span>
+    <div><strong>Important:</strong> Visa requirements depend entirely on your nationality. The information below is general guidance. Always verify with your country's Japanese embassy or consulate and Japan's Ministry of Foreign Affairs website before travel.</div>
+  </div>
+
+  <div class="visa-grid">
+    <div class="visa-card">
+      <h4>Visa-Free Countries</h4>
+      <p>Citizens of <span class="highlight">68+ countries</span> including USA, UK, Canada, Australia, EU, Singapore, South Korea, and most of Latin America can stay in Japan <span class="highlight">up to 90 days visa-free</span> as tourists. Your trip (12 days) qualifies.</p>
+    </div>
+    <div class="visa-card">
+      <h4>India &amp; South Asia</h4>
+      <p>Indian passport holders require a <span class="highlight">Tourist Visa</span>. Apply at the Japanese Embassy/Consulate. Typically requires proof of onward travel, hotel bookings, and bank statements. Processing: 5–7 business days.</p>
+    </div>
+    <div class="visa-card">
+      <h4>Visa Duration</h4>
+      <p>Tourist visas for non-exempt countries are typically issued for <span class="highlight">15 or 30 days</span>. Your trip is 13 days — well within the 30-day window. Single-entry.</p>
+    </div>
+    <div class="visa-card">
+      <h4>Visit Japan Web</h4>
+      <p>Register on <span class="highlight">Visit Japan Web</span> (vjw-lp.digital.go.jp) for faster immigration and customs. Highly recommended — saves significant time at the airport on arrival.</p>
+    </div>
+  </div>
+
+  <div class="notes-box">
+    <h3>📋 Documents Required for Japan Tourist Visa</h3>
+    <ul>
+      <li><span class="bullet">→</span> Valid passport (min 6 months validity beyond return date)</li>
+      <li><span class="bullet">→</span> Completed visa application form</li>
+      <li><span class="bullet">→</span> Passport-size photographs (recent, white background)</li>
+      <li><span class="bullet">→</span> Confirmed return/onward flight bookings (e-tickets)</li>
+      <li><span class="bullet">→</span> Confirmed hotel / accommodation reservations for entire trip</li>
+      <li><span class="bullet">→</span> Bank statements (last 3–6 months) showing sufficient funds</li>
+      <li><span class="bullet">→</span> Employment letter or proof of occupation (if employed)</li>
+      <li><span class="bullet">→</span> Itinerary / day-by-day plan (this document helps!)</li>
+      <li><span class="bullet">→</span> Travel insurance (recommended but check if required)</li>
+    </ul>
+  </div>
+
+  <div class="notes-box">
+    <h3>⏰ Visa Application Timeline</h3>
+    <ul>
+      <li><span class="bullet">→</span> <strong>Apply at least 6–8 weeks before departure</strong> — especially important for summer travel</li>
+      <li><span class="bullet">→</span> Have ALL hotel bookings and flights confirmed before applying</li>
+      <li><span class="bullet">→</span> Do not book non-refundable flights before visa approval (for visa-required countries)</li>
+      <li><span class="bullet">→</span> Processing time: typically 5–10 business days at most embassies</li>
+    </ul>
+  </div>
+
+  <!-- ====================== CHECKLIST ====================== -->
+  <div class="section-header">
+    <div class="section-icon">✅</div>
+    <h2>Pre-Trip Booking Checklist</h2>
+  </div>
+
+  <div class="notes-box">
+    <h3>🎫 Book These In Advance (sell out in summer)</h3>
+    <div class="checklist">
+      <div class="check-item"><span class="ci">✓</span> Shibuya Sky sunset ticket</div>
+      <div class="check-item"><span class="ci">✓</span> TeamLab Planets (Toyosu)</div>
+      <div class="check-item"><span class="ci">✓</span> Sagano Scenic Railway / Romantic Train</div>
+      <div class="check-item"><span class="ci">✓</span> Hozugawa River Cruise</div>
+      <div class="check-item"><span class="ci">✓</span> USJ tickets + Express Pass</div>
+      <div class="check-item"><span class="ci">✓</span> All Shinkansen reserved seats</div>
+      <div class="check-item"><span class="ci">✓</span> Kimono rental in Asakusa</div>
+      <div class="check-item"><span class="ci">✓</span> Kaiseki dinner reservation (Kyoto)</div>
+      <div class="check-item"><span class="ci">✓</span> Ninja Café (Dotonbori)</div>
+      <div class="check-item"><span class="ci">✓</span> All hotels (book NOW for July–Aug)</div>
+      <div class="check-item"><span class="ci">✓</span> Fuji day tour (if guided)</div>
+      <div class="check-item"><span class="ci">✓</span> Onward bus: Shinjuku → Kawaguchiko</div>
+    </div>
+  </div>
+
+  <!-- ====================== FOOD GUIDE ====================== -->
+  <div class="section-header">
+    <div class="section-icon">🍜</div>
+    <h2>Food Must-Haves</h2>
+  </div>
+
+  <div class="food-grid">
+    <div class="food-card">
+      <div class="icon">🐙</div>
+      <div class="name">Takoyaki</div>
+      <div class="where">Osaka — Dotonbori</div>
+    </div>
+    <div class="food-card">
+      <div class="icon">🍣</div>
+      <div class="name">Conveyor Belt Sushi</div>
+      <div class="where">Everywhere — Sushiro chain</div>
+    </div>
+    <div class="food-card">
+      <div class="icon">🍛</div>
+      <div class="name">Japanese Curry</div>
+      <div class="where">Coco Ichibanya — nationwide</div>
+    </div>
+    <div class="food-card">
+      <div class="icon">🍵</div>
+      <div class="name">Matcha Parfait</div>
+      <div class="where">Uji / Kyoto — Itoh Kyuemon</div>
+    </div>
+    <div class="food-card">
+      <div class="icon">🍜</div>
+      <div class="name">Ramen</div>
+      <div class="where">Ramen Street — Tokyo Stn</div>
+    </div>
+    <div class="food-card">
+      <div class="icon">🥞</div>
+      <div class="name">Souffle Pancakes</div>
+      <div class="where">Benizuru — near Yurakucho</div>
+    </div>
+    <div class="food-card">
+      <div class="icon">🧀</div>
+      <div class="name">Rikuro's Cheesecake</div>
+      <div class="where">Osaka — famous jiggly cheesecake</div>
+    </div>
+    <div class="food-card">
+      <div class="icon">🍡</div>
+      <div class="name">Dango &amp; Mochi</div>
+      <div class="where">Nishiki Market, Nara markets</div>
+    </div>
+    <div class="food-card">
+      <div class="icon">🧊</div>
+      <div class="name">Kakigori (shaved ice)</div>
+      <div class="where">Summer special — everywhere</div>
+    </div>
+    <div class="food-card">
+      <div class="icon">🍢</div>
+      <div class="name">Kushikatsu</div>
+      <div class="where">Osaka — Shinsekai</div>
+    </div>
+    <div class="food-card">
+      <div class="icon">🦢</div>
+      <div class="name">Tofu Cuisine</div>
+      <div class="where">Yudofu Sagano — Arashiyama</div>
+    </div>
+    <div class="food-card">
+      <div class="icon">🍱</div>
+      <div class="name">Ekiben (station bento)</div>
+      <div class="where">Any Shinkansen station</div>
+    </div>
+  </div>
+
+  <!-- ====================== SUMMER TIPS ====================== -->
+  <div class="section-header">
+    <div class="section-icon">☀</div>
+    <h2>Summer Travel Tips</h2>
+  </div>
+
+  <div class="tips-grid">
+    <div class="tip-card">
+      <div class="tip-icon">🌡</div>
+      <h4>Beat the Heat</h4>
+      <p>Sightsee before 10 AM and after 5 PM. Rest indoors (malls, museums, cafés) from 12–3 PM. Kakigori (shaved ice) and combini cold drinks are your best friends.</p>
+    </div>
+    <div class="tip-card">
+      <div class="tip-icon">💴</div>
+      <h4>Cash &amp; Suica</h4>
+      <p>Japan is still heavily cash-based. Get a Suica card at the airport and top up regularly. Carry ¥10,000–20,000 cash at all times. 7-Eleven ATMs accept international cards.</p>
+    </div>
+    <div class="tip-card">
+      <div class="tip-icon">📱</div>
+      <h4>Data SIM / Pocket WiFi</h4>
+      <p>Get a pocket WiFi or data SIM (IIJmio, Docomo) at the airport. Google Maps + Google Translate offline is essential. Download Hyperdia or Google Maps for trains.</p>
+    </div>
+    <div class="tip-card">
+      <div class="tip-icon">👘</div>
+      <h4>Dress Code</h4>
+      <p>Light, breathable clothing. Remove shoes at ryokan, temples, and some restaurants. Modest dress at shrines and temples. A light layer for heavily air-conditioned shops.</p>
+    </div>
+    <div class="tip-card">
+      <div class="tip-icon">🌧</div>
+      <h4>Summer Rain</h4>
+      <p>Short, intense afternoon thunderstorms are common in July–August. Carry a compact umbrella or disposable rain poncho. Most pass within 30 minutes.</p>
+    </div>
+    <div class="tip-card">
+      <div class="tip-icon">🏮</div>
+      <h4>Obon Season</h4>
+      <p>Check local neighborhood festival schedules. Bon Odori dances happen at temples and parks at night — deeply traditional and open to tourists. Wear a yukata if you can find one.</p>
+    </div>
+    <div class="tip-card">
+      <div class="tip-icon">🚃</div>
+      <h4>Train Etiquette</h4>
+      <p>No phone calls on trains. Keep voice quiet. Stand on the left on escalators (right in Osaka). Offer priority seats to elderly. Eating on local trains is frowned upon.</p>
+    </div>
+    <div class="tip-card">
+      <div class="tip-icon">🗑</div>
+      <h4>No Rubbish Bins</h4>
+      <p>Japan has almost no public bins but is immaculately clean. Carry a small bag for your rubbish or use combini bins for combini purchases only. Zero-litter culture.</p>
+    </div>
+    <div class="tip-card">
+      <div class="tip-icon">🎆</div>
+      <h4>Summer Festivals</h4>
+      <p>Check local fireworks (Hanabi) events in each city for your dates. Tokyo hosts multiple major hanabi festivals in late July/August — spectacular, free, and unforgettable.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- OVERVIEW TABLE -->
+  <div class="notes-box">
+    <h3>📍 City Overview</h3>
+    <ul>
+      <li><span class="bullet">🗼</span> <strong>Tokyo</strong> — Days 1–5 (5 nights) · Base: Shinjuku or Shibuya area</li>
+      <li><span class="bullet">⛩</span> <strong>Kyoto</strong> — Days 6–7 (2 nights) · Base: Kawaramachi or Gion</li>
+      <li><span class="bullet">🦀</span> <strong>Osaka</strong> — Days 8–11 (4 nights) · Base: Namba or Shinsaibashi</li>
+      <li><span class="bullet">✈</span> <strong>Tokyo (Final)</strong> — Day 12 (1 night near NRT) · Base: Narita or near NRT</li>
+    </ul>
+  </div>
+
+</div>
+
+<div class="footer">
+  Compiled from 4 traveller itineraries + Japan National Tourism Organization summer guidance · July 21 – August 2, 2026 · Verify all opening hours &amp; bookings locally before travel
+</div>
+
+</body>
+</html>

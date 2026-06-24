@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { Plus, Trash2, X, Check, UserCircle, ChevronDown } from 'lucide-react';
 import CurrencyInput from './CurrencyInput';
+import { categoryColor } from '../expenses/ExpenseRow';
 
 const TRAVEL_CATEGORY = 'Travel';
 
@@ -155,7 +156,7 @@ const PaidBySelect = ({ value, onChange, options, onAdd, onDelete }) => {
 };
 
 // ── Reusable dropdown with inline delete per option ───────────────────────────
-const ManageableSelect = ({ value, onChange, options, onAddNew, onDelete, placeholder }) => {
+const ManageableSelect = ({ value, onChange, options, onAddNew, onDelete, placeholder, showDots }) => {
   const [open, setOpen] = useState(false);
   const [pos,  setPos]  = useState({ top: 0, left: 0, width: 0 });
   const btnRef  = useRef();
@@ -168,14 +169,12 @@ const ManageableSelect = ({ value, onChange, options, onAddNew, onDelete, placeh
     }
   };
 
-  // Close on outside click
   useEffect(() => {
     if (!open) return;
     const onDown = (e) => {
       if (!btnRef.current?.contains(e.target) && !menuRef.current?.contains(e.target))
         setOpen(false);
     };
-
     const onScroll = (e) => { if (menuRef.current?.contains(e.target)) return; setOpen(false); };
     document.addEventListener('mousedown', onDown);
     window.addEventListener('scroll', onScroll, true);
@@ -185,10 +184,7 @@ const ManageableSelect = ({ value, onChange, options, onAddNew, onDelete, placeh
     };
   }, [open]);
 
-  const handleOpen = () => {
-    calcPos();
-    setOpen(o => !o);
-  };
+  const handleOpen = () => { calcPos(); setOpen(o => !o); };
 
   const menu = open && ReactDOM.createPortal(
     <div
@@ -202,10 +198,15 @@ const ManageableSelect = ({ value, onChange, options, onAddNew, onDelete, placeh
       </button>
       <div className="max-h-44 overflow-y-auto">
         {options.map(opt => (
-          <div key={opt} className={`flex items-center justify-between px-3 py-1.5 hover:bg-white/10 transition-colors group ${opt === value ? 'bg-purple-500/20' : ''}`}>
+          <div key={opt} className={'flex items-center justify-between px-3 py-1.5 hover:bg-white/10 transition-colors group ' + (opt === value ? 'bg-purple-500/20' : '')}>
             <button type="button" onClick={() => { onChange(opt); setOpen(false); }}
-              className="flex-1 text-left text-sm text-white">
-              {opt}{opt === value && <Check className="w-3 h-3 text-purple-400 inline ml-2" />}
+              className="flex-1 text-left text-sm text-white flex items-center gap-2">
+              {showDots && (
+                <span className="w-2.5 h-2.5 rounded-full shrink-0 ring-1 ring-white/20"
+                  style={{ background: categoryColor(opt) }} />
+              )}
+              {opt}
+              {opt === value && <Check className="w-3 h-3 text-purple-400 ml-1" />}
             </button>
             {onDelete && (
               <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(opt); }}
@@ -229,9 +230,15 @@ const ManageableSelect = ({ value, onChange, options, onAddNew, onDelete, placeh
   return (
     <div className="relative">
       <button ref={btnRef} type="button" onClick={handleOpen}
-        className={`${sel} flex items-center justify-between text-left`}>
-        <span className={value ? 'text-white' : 'text-purple-400'}>{value || placeholder}</span>
-        <ChevronDown className={`w-4 h-4 text-purple-400 shrink-0 ml-2 transition-transform ${open ? 'rotate-180' : ''}`} />
+        className={sel + ' flex items-center justify-between text-left'}>
+        <span className="flex items-center gap-2 min-w-0">
+          {showDots && value && (
+            <span className="w-2.5 h-2.5 rounded-full shrink-0 ring-1 ring-white/20"
+              style={{ background: categoryColor(value) }} />
+          )}
+          <span className={value ? 'text-white truncate' : 'text-purple-400'}>{value || placeholder}</span>
+        </span>
+        <ChevronDown className={'w-4 h-4 text-purple-400 shrink-0 ml-2 transition-transform ' + (open ? 'rotate-180' : '')} />
       </button>
       {menu}
     </div>
@@ -247,6 +254,7 @@ const CategorySelect = ({ value, onChange, categories, onAddNew, onDelete }) => 
     onAddNew={onAddNew}
     onDelete={onDelete}
     placeholder="Select Category"
+    showDots={true}
   />
 );
 

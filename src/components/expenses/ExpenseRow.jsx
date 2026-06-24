@@ -362,7 +362,12 @@ const ExpenseRow = ({
         <td className="py-2 pr-2" onClick={e => e.stopPropagation()}>
           <ActionMenuWrapper
             expense={expense}
-            onEdit={() => setEditingExpense({ ...expense })}
+            onEdit={() => setEditingExpense({
+              ...expense,
+              subTransactions: expense.subTransactions
+                ? expense.subTransactions.map(st => ({ ...st }))
+                : undefined,
+            })}
             onDelete={() => deleteExpense(expense.id)}
             onClone={onClone}
             onSkipMonth={onSkipMonth}

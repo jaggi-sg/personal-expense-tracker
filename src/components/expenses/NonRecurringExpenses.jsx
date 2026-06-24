@@ -5,6 +5,7 @@ import { useExpenseFilters } from '../../hooks/useExpenseFilters';
 import { useFilterPresets } from '../../hooks/useFilterPresets';
 import { applyAdvancedFilters } from '../../utils/advancedFilterUtils';
 import { getFilterDescription } from '../../utils/expenseHelpers';
+import FilterBreadcrumb from '../layout/FilterBreadcrumb';
 import ExpenseListControls from './ExpenseListControls';
 import Pagination from './Pagination';
 import ExpenseTable from './ExpenseTable';
@@ -58,6 +59,7 @@ const NonRecurringExpenses = ({
   onClearForm,
   onCloneExpense,
   onBulkEdit,
+  onBulkClone,
   onSkipMonth,
   onStatusChange,
   onScanAddExpense,
@@ -212,6 +214,18 @@ const NonRecurringExpenses = ({
           setSelectedTrip={setSelectedTrip}
         />
 
+        <FilterBreadcrumb
+          activeTab="non-recurring"
+          totalCount={nonRecurringList.length}
+          filteredCount={finalFiltered.length}
+          searchQuery={searchQuery}       setSearchQuery={setSearchQuery}
+          dateFrom={dateFrom}             setDateFrom={setDateFrom}
+          dateTo={dateTo}                 setDateTo={setDateTo}
+          selectedCategories={selectedCategories} toggleCategory={toggleCategory}
+          sortBy={sortBy}                 setSortBy={setSortBy}
+          clearAllFilters={handleClearAll}
+        />
+
         {finalFiltered.length === 0 && filteredExpenses.length > 0 && hasAdvanced && (
           <div className="text-center py-8 bg-orange-500/10 rounded-lg border border-orange-500/30 mb-4">
             <p className="text-orange-300 font-semibold mb-2">No expenses match your filters</p>
@@ -238,6 +252,7 @@ const NonRecurringExpenses = ({
           onClone={onCloneExpense}
           onBulkDelete={handleBulkDelete}
           onBulkEdit={onBulkEdit}
+          onBulkClone={onBulkClone}
           onSkipMonth={onSkipMonth}
           onStatusChange={onStatusChange}
           onCategoryFilter={handleCategoryFilter}

@@ -64,12 +64,37 @@ export const useExpenseActions = (
     if (activeTab === 'non-recurring' && !formData.amount) {
       alert('Please enter an amount'); return;
     }
+
+    // ── Duplicate detection ───────────────────────────────────────────────────
+    const newAmount = parseFloat(formData.amount) || 0;
+    const newDesc   = (formData.description || '').toLowerCase().trim();
+    const newDate   = new Date((formData.date || new Date().toISOString().split('T')[0]) + 'T00:00:00Z');
+    const sevenDaysAgo = new Date(newDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    const duplicate = expenses.find(e => {
+      if (Math.abs(e.amount - newAmount) > 0.01) return false;
+      if ((e.description || '').toLowerCase().trim() !== newDesc) return false;
+      const eDate = new Date(e.date + 'T00:00:00Z');
+      return eDate >= sevenDaysAgo && eDate <= newDate;
+    });
+
+    if (duplicate) {
+      const dupDate = duplicate.date;
+      const confirmed = window.confirm(
+        'Possible duplicate detected!\n\n' +
+        '"' + duplicate.description + '" for $' + duplicate.amount.toFixed(2) +
+        ' was already added on ' + dupDate + '.\n\n' +
+        'Add anyway?'
+      );
+      if (!confirmed) return;
+    }
+
     const type = activeTab === 'recurring' ? 'Recurring' : 'Non-Recurring';
     saveExpenses([...expenses, {
       id: Date.now().toString(),
       ...formData,
       type,
-      amount: parseFloat(formData.amount) || 0,
+      amount: newAmount,
       subTransactions: subTransactions.length > 0 ? subTransactions : undefined,
     }]);
     resetForm(type);

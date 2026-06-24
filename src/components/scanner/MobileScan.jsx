@@ -63,57 +63,24 @@ const MobileScan = () => {
       + 'Amount=total paid. Date=receipt date or ' + today + '. Category=what was bought not the store name.';
 
     try {
-      const geminiKey    = import.meta.env.VITE_GEMINI_API_KEY;
-      const anthropicKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
-      let parsed;
+      // All API calls go through the relay server — key never touches the browser
+      const relayHost = window.location.hostname;
+      const relayUrl  = 'http://' + relayHost + ':5176/scan-receipt';
 
-      if (geminiKey) {
-        let models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
-        try {
-          const lr = await fetch('https://generativelanguage.googleapis.com/v1beta/models?key=' + geminiKey);
-          if (lr.ok) {
-            const ld = await lr.json();
-            const found = (ld.models||[])
-              .filter(m => (m.supportedGenerationMethods||[]).includes('generateContent'))
-              .map(m => m.name.replace('models/',''))
-              .filter(n => n.includes('flash') || n.includes('pro'));
-            if (found.length) models = found;
-          }
-        } catch (_) {}
+      const res = await fetch(relayUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mimeType, b64Data }),
+      });
 
-        let gData = null; let lastErr = '';
-        for (const model of models.slice(0,4)) {
-          const gr = await fetch(
-            'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + geminiKey,
-            { method:'POST', headers:{'Content-Type':'application/json'},
-              body: JSON.stringify({ contents:[{ parts:[
-                { inline_data:{ mime_type: mimeType, data: b64Data } }, { text: prompt }
-              ]}], generationConfig:{ temperature:0 } }) }
-          );
-          if (gr.status === 429 || gr.status === 404) { lastErr = gr.status + ' on ' + model; continue; }
-          if (!gr.ok) throw new Error('Gemini ' + gr.status);
-          gData = await gr.json(); break;
-        }
-        if (!gData) throw new Error('No Gemini model available (' + lastErr + '). Wait 60s and retry.');
-        parsed = JSON.parse((gData.candidates?.[0]?.content?.parts?.[0]?.text||'').replace(/```json|```/g,'').trim());
-
-      } else if (anthropicKey) {
-        const ar = await fetch('/api/anthropic/v1/messages', {
-          method:'POST',
-          headers:{'Content-Type':'application/json','x-api-key':anthropicKey,'anthropic-version':'2023-06-01'},
-          body: JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:512,
-            messages:[{ role:'user', content:[
-              { type:'image', source:{ type:'base64', media_type:mimeType, data:b64Data } },
-              { type:'text', text:prompt }
-            ]}] })
-        });
-        if (!ar.ok) throw new Error('Anthropic ' + ar.status);
-        const ad = await ar.json();
-        parsed = JSON.parse(((ad.content||[]).find(b=>b.type==='text')?.text||'').replace(/```json|```/g,'').trim());
-
-      } else {
-        throw new Error('No API key. Set VITE_GEMINI_API_KEY or VITE_ANTHROPIC_API_KEY in .env');
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Relay error ' + res.status }));
+        throw new Error(err.error || 'Relay error ' + res.status);
       }
+
+      const json = await res.json();
+      if (!json.ok || !json.data) throw new Error(json.error || 'No data from relay');
+      const parsed = json.data;
 
       if (!parsed.amount || isNaN(parseFloat(parsed.amount))) {
         throw new Error('Could not read total amount. Try a clearer photo.');

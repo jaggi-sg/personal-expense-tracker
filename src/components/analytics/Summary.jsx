@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   Calendar, TrendingUp, TrendingDown, Download, Upload,
   Home, Wifi, Zap, Trash as TrashIcon, Building2, Droplet,
   Phone, Tv, DollarSign, Wrench, Package, Fuel, ShoppingCart,
   Eye, EyeOff, Award, Archive
 } from 'lucide-react';
+import RecurringHealthCard from './RecurringHealthCard';
+import AnomalyBanner from './AnomalyBanner';
+import CategoryDrillDownModal from './CategoryDrillDownModal';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -68,8 +71,11 @@ const Summary = ({
   exportToCSV,
   exportFullBackup,
   onImportClick,
+  onStatusChange,
 }) => {
-  const [hideZero, setHideZero] = useState(true);
+  const [hideZero,  setHideZero]  = useState(true);
+  const [drillCat,  setDrillCat]  = useState(null);
+  const [drillOpen, setDrillOpen] = useState(false);
 
   useEffect(() => {
     const currentYear = new Date().getFullYear().toString();
@@ -277,32 +283,38 @@ const Summary = ({
           const pct   = total > 0 ? (amount / total) * 100 : 0;
           const color = getCategoryColor(category, amount, averages);
           return (
-            <div key={category} className={`rounded-lg p-3 border transition-all hover:brightness-110 ${color.bg} ${color.border}`}>
+            <div
+              key={category}
+              onClick={() => { setDrillCat({ category, type }); setDrillOpen(true); }}
+              className={'rounded-lg p-3 border transition-all hover:brightness-110 cursor-pointer hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/20 active:scale-[0.98] ' + color.bg + ' ' + color.border}
+            >
               <div className="flex items-center gap-2 mb-1">
                 <div className="text-purple-300">{getCategoryIcon(category)}</div>
                 <h3 className="text-purple-200 text-xs truncate flex-1">{category}</h3>
                 <span className="text-purple-400 text-xs font-medium shrink-0">{pct.toFixed(1)}%</span>
               </div>
-              <p className="text-lg font-bold text-white">${amount.toFixed(2)}</p>
-              {/* vs-average badge */}
+              <p className="text-lg font-bold text-white">{'$' + amount.toFixed(2)}</p>
               {color.badge && (
-                <p className={`text-xs font-semibold mt-1 ${color.badge.color}`}>
+                <p className={'text-xs font-semibold mt-1 ' + color.badge.color}>
                   {color.badge.label}
                 </p>
               )}
-              {/* % of total bar */}
               <div className="mt-2 h-1 rounded-full bg-white/10 overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all duration-500 ${
+                  className={'h-full rounded-full transition-all duration-500 ' + (
                     color.badge
                       ? color.badge.color.includes('red')    ? 'bg-gradient-to-r from-red-400 to-red-600'
                       : color.badge.color.includes('yellow') ? 'bg-gradient-to-r from-yellow-400 to-yellow-600'
                       :                                        'bg-gradient-to-r from-green-400 to-green-600'
                       : 'bg-gradient-to-r from-purple-400 to-pink-400'
-                  }`}
-                  style={{ width: `${Math.min(pct, 100)}%` }}
+                  )}
+                  style={{ width: Math.min(pct, 100) + '%' }}
                 />
               </div>
+              {/* Drill-down hint */}
+              <p className="text-purple-600 text-[10px] mt-1.5 opacity-0 hover:opacity-100 transition-opacity">
+                Click to drill down
+              </p>
             </div>
           );
         })}
@@ -383,9 +395,13 @@ const Summary = ({
 
   return (
     <>
-      {/* ── Recurring Row ──────────────────────────────────────────────────── */}
+      {/* ── Anomaly Banner ─────────────────────────────────────────────────── */}
+      <AnomalyBanner expenses={expenses} />
+
+      {/* ── Recurring Health + Total Row ───────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
-        <div className="lg:col-span-4">
+        <div className="lg:col-span-4 space-y-4">
+          <RecurringHealthCard expenses={expenses} onStatusChange={onStatusChange} />
           <TotalCard
             label="Total Recurring (Paid)"
             total={recurringTotal}
@@ -427,6 +443,17 @@ const Summary = ({
             <CategoryGrid type="Recurring" total={recurringTotal} averages={recurringAverages} />
           </div>
         </div>
+      </div>
+
+      {/* ── Section Separator ──────────────────────────────────────────────── */}
+      <div className="relative flex items-center gap-4 my-2">
+        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-violet-500/40 to-transparent" />
+        <div className="flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-violet-500/25 bg-violet-500/10 backdrop-blur shrink-0">
+          <div className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
+          <span className="text-violet-300 text-xs font-semibold uppercase tracking-widest">Non-Recurring</span>
+          <div className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
+        </div>
+        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-violet-500/40 to-transparent" />
       </div>
 
       {/* ── Non-Recurring Row ──────────────────────────────────────────────── */}
@@ -498,6 +525,14 @@ const Summary = ({
           </button>
         </div>
       </div>
+
+      <CategoryDrillDownModal
+        isOpen={drillOpen}
+        onClose={() => { setDrillOpen(false); setDrillCat(null); }}
+        category={drillCat?.category || ''}
+        expenses={expenses}
+        filterYear={filterYear}
+      />
     </>
   );
 };
