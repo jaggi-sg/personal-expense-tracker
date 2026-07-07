@@ -187,8 +187,8 @@ const NonRecurringExpenses = ({
         expenseType="Non-Recurring"
       />
 
-      <div className="bg-white/10 backdrop-blur-lg rounded-xl px-2 py-4 border border-white/20">
-        <h2 className="text-2xl font-bold text-white mb-4">Non-Recurring Expense List</h2>
+      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 md:p-5 border border-white/20">
+        <h2 className="text-xl font-bold text-white mb-3">Non-Recurring Expense List</h2>
 
         <ExpenseListControls
           dateFrom={dateFrom}             setDateFrom={setDateFrom}

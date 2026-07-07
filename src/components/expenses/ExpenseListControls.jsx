@@ -188,7 +188,7 @@ const ExpenseListControls = ({
   };
 
   return (
-    <div className="mb-5">
+    <div className="mb-4">
 
       {/* ── Always-visible top row ─────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -252,7 +252,7 @@ const ExpenseListControls = ({
 
       {/* ── Collapsible filter panel ───────────────────────────────────────── */}
       {expanded && (
-        <div className="bg-white/5 border border-white/15 rounded-xl p-4 space-y-4 mb-3">
+        <div className="bg-white/5 border border-white/15 rounded-xl p-3.5 space-y-3 mb-3">
 
           {/* Row 0: Smart Search */}
           <div className="space-y-1.5">

@@ -32,10 +32,10 @@ const SummaryCards = ({
   const hasFiltered = filterDescription && filterDescription !== 'All expenses';
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
 
       {/* ── Card 1: Total Paid ─────────────────────────────────────────────── */}
-      <div className={`relative overflow-hidden bg-white/10 backdrop-blur-lg rounded-xl p-5 border border-white/20 border-l-4 border-l-${accentColor}-400`}>
+      <div className={`relative overflow-hidden bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20 border-l-4 border-l-${accentColor}-400`}>
         {/* Faint background glow */}
         <div className={`absolute -top-6 -right-6 w-24 h-24 bg-${accentColor}-500/10 rounded-full blur-2xl pointer-events-none`} />
 
@@ -44,7 +44,7 @@ const SummaryCards = ({
             <p className="text-purple-300 text-xs font-medium uppercase tracking-wide mb-1">
               Total {type} (Paid)
             </p>
-            <p className="text-4xl font-bold text-white leading-none">
+            <p className="text-3xl font-bold text-white leading-none">
               ${totalAmount.toFixed(2)}
             </p>
           </div>
@@ -80,7 +80,7 @@ const SummaryCards = ({
       </div>
 
       {/* ── Card 2: Pending & Overdue ──────────────────────────────────────── */}
-      <div className="relative overflow-hidden bg-white/10 backdrop-blur-lg rounded-xl p-5 border border-white/20 border-l-4 border-l-orange-400">
+      <div className="relative overflow-hidden bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20 border-l-4 border-l-orange-400">
         <div className="absolute -top-6 -right-6 w-24 h-24 bg-orange-500/10 rounded-full blur-2xl pointer-events-none" />
 
         <div className="flex items-start justify-between mb-3">
@@ -88,7 +88,7 @@ const SummaryCards = ({
             <p className="text-purple-300 text-xs font-medium uppercase tracking-wide mb-1">
               Pending & Overdue
             </p>
-            <p className="text-4xl font-bold text-white leading-none">
+            <p className="text-3xl font-bold text-white leading-none">
               {pendingList.length + overdueList.length}
               <span className="text-lg font-normal text-purple-400 ml-1">entries</span>
             </p>
@@ -126,7 +126,7 @@ const SummaryCards = ({
       </div>
 
       {/* ── Card 3: Filtered Total ─────────────────────────────────────────── */}
-      <div className="relative overflow-hidden bg-white/10 backdrop-blur-lg rounded-xl p-5 border border-white/20 border-l-4 border-l-purple-400">
+      <div className="relative overflow-hidden bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20 border-l-4 border-l-purple-400">
         <div className="absolute -top-6 -right-6 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl pointer-events-none" />
 
         <div className="flex items-start justify-between mb-3">
@@ -134,7 +134,7 @@ const SummaryCards = ({
             <p className="text-purple-300 text-xs font-medium uppercase tracking-wide mb-1">
               {hasFiltered ? 'Filtered Total (Paid)' : 'All Entries'}
             </p>
-            <p className="text-4xl font-bold text-white leading-none">
+            <p className="text-3xl font-bold text-white leading-none">
               {hasFiltered ? `$${filteredTotal.toFixed(2)}` : totalEntries}
               {!hasFiltered && (
                 <span className="text-lg font-normal text-purple-400 ml-1">entries</span>
