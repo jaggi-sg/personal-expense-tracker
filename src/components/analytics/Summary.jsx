@@ -140,11 +140,14 @@ const Summary = ({
       badge: null,
     };
     const ratio = amount / avg;
-    if (ratio > 1.2) return {
-      border: 'border-red-500/40',
-      bg: 'bg-red-500/10',
-      badge: { label: `+${((ratio - 1) * 100).toFixed(0)}% vs avg`, color: 'text-red-400' },
-    };
+    if (ratio > 1.2) {
+      const pctOver = (ratio - 1) * 100;
+      return {
+        border: 'border-red-500/40',
+        bg: 'bg-red-500/10',
+        badge: { label: pctOver > 200 ? '≫ avg' : `+${pctOver.toFixed(0)}% vs avg`, color: 'text-red-400' },
+      };
+    }
     if (ratio > 0.8) return {
       border: 'border-yellow-500/30',
       bg: 'bg-yellow-500/5',
@@ -278,7 +281,7 @@ const Summary = ({
     if (!entries.length)
       return <p className="text-purple-400 text-sm">No paid expenses for this period.</p>;
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-3">
         {entries.map(([category, amount]) => {
           const pct   = total > 0 ? (amount / total) * 100 : 0;
           const color = getCategoryColor(category, amount, averages);
@@ -311,10 +314,6 @@ const Summary = ({
                   style={{ width: Math.min(pct, 100) + '%' }}
                 />
               </div>
-              {/* Drill-down hint */}
-              <p className="text-purple-600 text-[10px] mt-1.5 opacity-0 hover:opacity-100 transition-opacity">
-                Click to drill down
-              </p>
             </div>
           );
         })}
@@ -327,7 +326,7 @@ const Summary = ({
     const topCat   = topCategoryThisMonth(expList);
     const bigChg   = biggestCategoryChange(expList);
     return (
-      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-5 border border-white/20 h-full flex flex-col gap-4">
+      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20 h-full flex flex-col gap-3">
         {/* ── Header ── */}
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -398,6 +397,26 @@ const Summary = ({
       {/* ── Anomaly Banner ─────────────────────────────────────────────────── */}
       <AnomalyBanner expenses={expenses} />
 
+      {/* ── Shared Toolbar + Legend ────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setHideZero(!hideZero)}
+            className="flex items-center gap-1.5 text-xs text-purple-300 hover:text-white transition-colors"
+          >
+            {hideZero ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+            {hideZero ? 'Show $0' : 'Hide $0'}
+          </button>
+          <YearSelect />
+        </div>
+        <div className="flex flex-wrap gap-3 text-xs">
+          <span className="flex items-center gap-1.5 text-red-400"><span className="w-2 h-2 rounded-full bg-red-400 inline-block"/>Above avg (&gt;20%)</span>
+          <span className="flex items-center gap-1.5 text-yellow-400"><span className="w-2 h-2 rounded-full bg-yellow-400 inline-block"/>Near avg (±20%)</span>
+          <span className="flex items-center gap-1.5 text-green-400"><span className="w-2 h-2 rounded-full bg-green-400 inline-block"/>Below avg</span>
+          <span className="flex items-center gap-1.5 text-purple-400"><span className="w-2 h-2 rounded-full bg-purple-400 inline-block"/>No history</span>
+        </div>
+      </div>
+
       {/* ── Recurring Health + Total Row ───────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
         <div className="lg:col-span-4 space-y-4">
@@ -415,31 +434,14 @@ const Summary = ({
           />
         </div>
         <div className="lg:col-span-8">
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 h-full">
+          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20">
             <div className="flex items-center justify-between mb-1">
               <h2 className="text-xl font-bold text-white">Recurring Expenses Summary</h2>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setHideZero(!hideZero)}
-                  className="flex items-center gap-1.5 text-xs text-purple-300 hover:text-white transition-colors"
-                >
-                  {hideZero ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                  {hideZero ? 'Show $0' : 'Hide $0'}
-                </button>
-                <YearSelect />
-              </div>
             </div>
             <p className="text-purple-200 text-xs mb-3">
               Total Paid for {filterYear === 'All' ? 'All Years' : filterYear}:{' '}
               <span className="text-white font-bold text-base">${getYearlyTotal('Recurring').toFixed(2)}</span>
             </p>
-            {/* Color legend */}
-            <div className="flex flex-wrap gap-3 mb-4 text-xs">
-              <span className="flex items-center gap-1.5 text-red-400"><span className="w-2 h-2 rounded-full bg-red-400 inline-block"/>Above avg (&gt;20%)</span>
-              <span className="flex items-center gap-1.5 text-yellow-400"><span className="w-2 h-2 rounded-full bg-yellow-400 inline-block"/>Near avg (±20%)</span>
-              <span className="flex items-center gap-1.5 text-green-400"><span className="w-2 h-2 rounded-full bg-green-400 inline-block"/>Below avg</span>
-              <span className="flex items-center gap-1.5 text-purple-400"><span className="w-2 h-2 rounded-full bg-purple-400 inline-block"/>No history</span>
-            </div>
             <CategoryGrid type="Recurring" total={recurringTotal} averages={recurringAverages} />
           </div>
         </div>
@@ -472,38 +474,21 @@ const Summary = ({
           />
         </div>
         <div className="lg:col-span-8">
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 h-full">
+          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20">
             <div className="flex items-center justify-between mb-1">
               <h2 className="text-xl font-bold text-white">Non-Recurring Expenses Summary</h2>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setHideZero(!hideZero)}
-                  className="flex items-center gap-1.5 text-xs text-purple-300 hover:text-white transition-colors"
-                >
-                  {hideZero ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                  {hideZero ? 'Show $0' : 'Hide $0'}
-                </button>
-                <YearSelect />
-              </div>
             </div>
             <p className="text-purple-200 text-xs mb-3">
               Total Paid for {filterYear === 'All' ? 'All Years' : filterYear}:{' '}
               <span className="text-white font-bold text-base">${getYearlyTotal('Non-Recurring').toFixed(2)}</span>
             </p>
-            {/* Color legend */}
-            <div className="flex flex-wrap gap-3 mb-4 text-xs">
-              <span className="flex items-center gap-1.5 text-red-400"><span className="w-2 h-2 rounded-full bg-red-400 inline-block"/>Above avg (&gt;20%)</span>
-              <span className="flex items-center gap-1.5 text-yellow-400"><span className="w-2 h-2 rounded-full bg-yellow-400 inline-block"/>Near avg (±20%)</span>
-              <span className="flex items-center gap-1.5 text-green-400"><span className="w-2 h-2 rounded-full bg-green-400 inline-block"/>Below avg</span>
-              <span className="flex items-center gap-1.5 text-purple-400"><span className="w-2 h-2 rounded-full bg-purple-400 inline-block"/>No history</span>
-            </div>
             <CategoryGrid type="Non-Recurring" total={nonRecurringTotal} averages={nonRecurringAverages} />
           </div>
         </div>
       </div>
 
       {/* ── Data Management ────────────────────────────────────────────────── */}
-      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20">
         <h2 className="text-xl font-bold text-white mb-1">Data Management</h2>
         <p className="text-purple-400 text-xs mb-4">
           Use <span className="text-violet-300 font-semibold">Full Backup</span> to preserve categories &amp; payment types across ports/devices.
