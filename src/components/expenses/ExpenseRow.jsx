@@ -338,7 +338,7 @@ const ExpenseRow = ({
           <div className="flex items-center gap-2">
             <span className="text-white text-sm leading-snug">{expense.description.replace(/\s*\(AUTO-GENERATED\)/i, '')}</span>
             {/AUTO-GENERATED/i.test(expense.description) && (
-              <span className="shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 uppercase tracking-wide">Auto</span>
+              <span className="shrink-0 text-[9px] text-purple-500/40 uppercase tracking-wide" title="Auto-generated">auto</span>
             )}
             {hasSubTransactions && expense.subTransactions?.length > 0 && (
               <span className="text-purple-400 text-xs bg-purple-500/15 px-1.5 py-0.5 rounded shrink-0">{expense.subTransactions.length} items</span>
@@ -349,12 +349,12 @@ const ExpenseRow = ({
           </div>
         </td>
         <td className="py-2 pr-3 whitespace-nowrap">
-          <span className={'font-semibold text-sm ' + amountClass(expense.status)}>{'$' + expense.amount.toFixed(2)}</span>
+          <span className={'font-semibold text-sm ' + (expense.amount === 0 ? 'text-purple-500/40' : amountClass(expense.status))}>{'$' + expense.amount.toFixed(2)}</span>
           {hasFx && <FxBadge expense={expense} />}
         </td>
         <td className="py-2 pr-3 whitespace-nowrap">
           <span className="text-white text-sm">{expense.paymentType || '-'}</span>
-          {expense.by && <div className="text-purple-400 text-[10px]">{expense.by}</div>}
+          {expense.by && <span className="text-purple-400/60 text-xs"> · {expense.by}</span>}
         </td>
         <td className="py-2 pr-3 whitespace-nowrap" onClick={e => e.stopPropagation()}>
           <InlineStatusBadge status={expense.status} onToggle={handleToggleStatus} />
