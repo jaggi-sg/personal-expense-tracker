@@ -19,7 +19,7 @@ const RecurringHealthCard = ({ expenses, onStatusChange }) => {
   const thisMonth = now.getMonth();
   const thisYear  = now.getFullYear();
 
-  const { thisMonthRecurring, unpaid, paid, auto, manual, healthPct } = useMemo(() => {
+  const { thisMonthRecurring, unpaid, paid, manual, healthPct } = useMemo(() => {
     const recurring = expenses.filter(e => {
       if (e.type !== 'Recurring') return false;
       const d = new Date(e.date + 'T00:00:00Z');
@@ -28,13 +28,12 @@ const RecurringHealthCard = ({ expenses, onStatusChange }) => {
 
     const unpaid = recurring.filter(e => e.status === 'PENDING' || e.status === 'OVERDUE');
     const paid   = recurring.filter(e => e.status === 'PAID');
-    const auto   = recurring.filter(e => /AUTO-GENERATED/i.test(e.description || ''));
     const manual = recurring.filter(e => !/AUTO-GENERATED/i.test(e.description || ''));
     const healthPct = recurring.length > 0
       ? Math.round((paid.length / recurring.length) * 100)
       : 100;
 
-    return { thisMonthRecurring: recurring, unpaid, paid, auto, manual, healthPct };
+    return { thisMonthRecurring: recurring, unpaid, paid, manual, healthPct };
   }, [expenses, thisMonth, thisYear]);
 
   const handlePayAll = () => {
@@ -83,12 +82,11 @@ const RecurringHealthCard = ({ expenses, onStatusChange }) => {
       </div>
 
       {/* Stat row */}
-      <div className="grid grid-cols-4 gap-2 mb-4">
+      <div className="grid grid-cols-3 gap-2 mb-4">
         {[
           { label: 'Total',   value: thisMonthRecurring.length, color: 'text-white' },
           { label: 'Paid',    value: paid.length,   color: 'text-green-400' },
           { label: 'Unpaid',  value: unpaid.length,  color: unpaid.length > 0 ? 'text-red-400' : 'text-white' },
-          { label: 'Auto',    value: auto.length,    color: 'text-purple-400' },
         ].map(s => (
           <div key={s.label} className="bg-white/5 rounded-lg p-2 text-center">
             <p className={'font-bold text-lg leading-none ' + s.color}>{s.value}</p>
