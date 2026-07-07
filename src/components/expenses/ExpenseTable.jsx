@@ -126,7 +126,7 @@ const OverdueBanner = ({ expenses, onStatusChange }) => {
   return (
     <div className="mb-3 rounded-xl border border-amber-500/30 bg-amber-500/8 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-2.5">
+      <div className="flex items-center gap-3 px-3.5 py-2">
         <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
         <div className="flex-1 flex flex-wrap items-center gap-x-4 gap-y-0.5">
           {overdue.length > 0 && (
@@ -162,7 +162,7 @@ const OverdueBanner = ({ expenses, onStatusChange }) => {
 
       {/* Detail list */}
       {!collapsed && (
-        <div className="border-t border-amber-500/20 px-4 py-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5 max-h-36 overflow-y-auto">
+        <div className="border-t border-amber-500/20 px-3.5 py-1.5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5 max-h-36 overflow-y-auto">
           {all.map(e => (
             <div key={e.id} className="flex items-center justify-between bg-white/5 rounded-lg px-2.5 py-1.5 gap-2">
               <div className="min-w-0">

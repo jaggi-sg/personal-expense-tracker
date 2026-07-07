@@ -58,7 +58,7 @@ const AddExpenseSection = ({
   };
 
   return (
-    <div className="mb-6">
+    <div className="mb-5">
       {/* Toggle Button */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
