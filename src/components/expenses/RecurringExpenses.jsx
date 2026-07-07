@@ -82,7 +82,7 @@ const RecurringExpenses = ({
     ? advFiltered.filter(e => e.trip === selectedTrip)
     : advFiltered;
 
-  const itemsPerPage  = 10;
+  const itemsPerPage  = 25;
   const totalPages    = Math.ceil(finalFiltered.length / itemsPerPage);
   const startIndex    = (currentPage - 1) * itemsPerPage;
   const endIndex      = Math.min(startIndex + itemsPerPage, finalFiltered.length);
@@ -171,7 +171,7 @@ const RecurringExpenses = ({
         expenseType="Recurring"
       />
 
-      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+      <div className="bg-white/10 backdrop-blur-lg rounded-xl px-2 py-4 border border-white/20">
         <h2 className="text-2xl font-bold text-white mb-4">Recurring Expense List</h2>
 
         <ExpenseListControls
