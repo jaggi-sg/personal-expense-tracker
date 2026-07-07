@@ -4,14 +4,11 @@ import React, { useState } from 'react';
 import { Palette, Check } from 'lucide-react';
 import { CHART_THEMES } from '../../hooks/useChartTheme';
 
-const SWATCHES = {
-  violet:  ['#7c3aed', '#ec4899', '#06b6d4'],
-  emerald: ['#059669', '#0891b2', '#84cc16'],
-  amber:   ['#d97706', '#dc2626', '#f59e0b'],
-};
+const swatchColors = (t) => [t.primary, t.secondary, t.accent];
 
 const ChartThemePicker = ({ themeKey, setTheme }) => {
   const [open, setOpen] = useState(false);
+  const activeTheme = CHART_THEMES[themeKey] || CHART_THEMES.violet;
 
   return (
     <div className="relative">
@@ -22,7 +19,7 @@ const ChartThemePicker = ({ themeKey, setTheme }) => {
       >
         <Palette className="w-3.5 h-3.5 text-purple-300" />
         <div className="flex gap-0.5">
-          {SWATCHES[themeKey].map((c, i) => (
+          {swatchColors(activeTheme).map((c, i) => (
             <span key={i} className="w-2 h-2 rounded-full" style={{ background: c }} />
           ))}
         </div>
@@ -42,7 +39,7 @@ const ChartThemePicker = ({ themeKey, setTheme }) => {
               >
                 <div className="flex items-center gap-2">
                   <div className="flex gap-0.5">
-                    {SWATCHES[key].map((c, i) => (
+                    {swatchColors(t).map((c, i) => (
                       <span key={i} className="w-3 h-3 rounded-full" style={{ background: c }} />
                     ))}
                   </div>
