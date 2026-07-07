@@ -281,7 +281,7 @@ const Summary = ({
     if (!entries.length)
       return <p className="text-purple-400 text-sm">No paid expenses for this period.</p>;
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 items-stretch">
         {entries.map(([category, amount]) => {
           const pct   = total > 0 ? (amount / total) * 100 : 0;
           const color = getCategoryColor(category, amount, averages);
@@ -289,32 +289,34 @@ const Summary = ({
             <div
               key={category}
               onClick={() => { setDrillCat({ category, type }); setDrillOpen(true); }}
-              className={'rounded-xl p-4 border transition-all hover:brightness-110 cursor-pointer hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/20 active:scale-[0.98] ' + color.bg + ' ' + color.border}
+              className={'flex flex-col h-full rounded-xl p-3.5 border transition-all hover:brightness-110 cursor-pointer hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/20 active:scale-[0.98] ' + color.bg + ' ' + color.border}
             >
-              <div className="flex items-center gap-2 mb-1.5">
-                <div className="text-purple-300 shrink-0">{getCategoryIcon(category)}</div>
-                <h3 title={category} className="text-white text-sm font-semibold leading-tight break-words flex-1">{category}</h3>
+              <div className="flex items-start gap-2 min-h-[2.5rem]">
+                <div className="text-purple-300 shrink-0 mt-0.5">{getCategoryIcon(category)}</div>
+                <h3 title={category} className="text-white text-sm font-semibold leading-tight break-words line-clamp-2 flex-1">{category}</h3>
               </div>
-              <div className="flex items-baseline justify-between gap-2">
+              <div className="flex items-baseline justify-between gap-2 mt-1.5">
                 <p className="text-xl font-bold text-white">{'$' + amount.toFixed(2)}</p>
                 <span className="text-purple-400 text-xs font-medium shrink-0">{pct.toFixed(1)}%</span>
               </div>
-              {color.badge && (
-                <p className={'text-xs font-semibold mt-1 ' + color.badge.color}>
-                  {color.badge.label}
-                </p>
-              )}
-              <div className="mt-2 h-1.5 rounded-full bg-white/10 overflow-hidden">
-                <div
-                  className={'h-full rounded-full transition-all duration-500 ' + (
-                    color.badge
-                      ? color.badge.color.includes('red')    ? 'bg-gradient-to-r from-red-400 to-red-600'
-                      : color.badge.color.includes('yellow') ? 'bg-gradient-to-r from-yellow-400 to-yellow-600'
-                      :                                        'bg-gradient-to-r from-green-400 to-green-600'
-                      : 'bg-gradient-to-r from-purple-400 to-pink-400'
-                  )}
-                  style={{ width: Math.min(pct, 100) + '%' }}
-                />
+              <div className="mt-auto pt-2">
+                {color.badge && (
+                  <p className={'text-xs font-semibold mb-1 ' + color.badge.color}>
+                    {color.badge.label}
+                  </p>
+                )}
+                <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                  <div
+                    className={'h-full rounded-full transition-all duration-500 ' + (
+                      color.badge
+                        ? color.badge.color.includes('red')    ? 'bg-gradient-to-r from-red-400 to-red-600'
+                        : color.badge.color.includes('yellow') ? 'bg-gradient-to-r from-yellow-400 to-yellow-600'
+                        :                                        'bg-gradient-to-r from-green-400 to-green-600'
+                        : 'bg-gradient-to-r from-purple-400 to-pink-400'
+                    )}
+                    style={{ width: Math.min(pct, 100) + '%' }}
+                  />
+                </div>
               </div>
             </div>
           );
