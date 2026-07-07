@@ -26,8 +26,12 @@ export function CategoryPatternsCard({
   onPrev, onNext,
   onCategoryClick, selectedYear,
   filteredExpenses,
+  chartTheme,
   Card, SectionHeader, PieChart,
 }) {
+  const barGradient = chartTheme
+    ? { backgroundImage: 'linear-gradient(to right, ' + chartTheme.primary + ', ' + chartTheme.secondary + ')' }
+    : {};
   // Bar chart rows
   const bars = topCategories.map(function(entry) {
     var cat  = entry[0];
@@ -49,7 +53,7 @@ export function CategoryPatternsCard({
         )
       ),
       e('div', { className: 'h-2 bg-white/8 rounded-full overflow-hidden' },
-        e('div', { className: 'h-full bg-gradient-to-r from-violet-500 to-purple-400 rounded-full transition-all duration-500', style: { width: w + '%' } })
+        e('div', { className: 'h-full rounded-full transition-all duration-500', style: Object.assign({ width: w + '%' }, barGradient) })
       )
     );
   });
@@ -122,15 +126,19 @@ export function MonthlyTotalsCard({
   monthlyTotals, maxMonthly, MONTHS_FULL,
   lowestMonth, highestMonth, monthlyAvg,
   onDrillMonth,
+  chartTheme,
   Card, SectionHeader, Activity, DollarSign, TrendingDown, TrendingUp,
 }) {
   var fmt2 = fmt;
+  var monthlyBarGradient = chartTheme
+    ? { backgroundImage: 'linear-gradient(to right, ' + chartTheme.primary + ', ' + chartTheme.secondary + ')' }
+    : {};
 
   var bars = monthlyTotals.map(function(data, idx) {
     var hasData  = data.total > 0;
     var cls      = hasData ? 'flex items-center gap-3 group cursor-pointer' : 'flex items-center gap-3 group';
     var barCls   = hasData
-      ? 'h-full rounded-full transition-all duration-500 flex items-center justify-end pr-3 bg-gradient-to-r from-violet-500 to-pink-500'
+      ? 'h-full rounded-full transition-all duration-500 flex items-center justify-end pr-3'
       : 'h-full';
     var barW     = maxMonthly > 0 ? (data.total / maxMonthly) * 100 : 0;
     var minW     = hasData ? 56 : 0;
@@ -139,7 +147,7 @@ export function MonthlyTotalsCard({
     return e('div', { key: data.month, className: cls, onClick: handleCl },
       e('span', { className: 'w-9 text-purple-300 text-xs font-semibold shrink-0' }, data.month),
       e('div', { className: 'flex-1 bg-white/8 rounded-full h-7 overflow-hidden relative' },
-        e('div', { className: barCls, style: { width: barW + '%', minWidth: minW } },
+        e('div', { className: barCls, style: Object.assign({ width: barW + '%', minWidth: minW }, hasData ? monthlyBarGradient : {}) },
           hasData && e('span', { className: 'text-white text-xs font-bold whitespace-nowrap' }, fmt2(data.total))
         )
       ),
@@ -151,14 +159,14 @@ export function MonthlyTotalsCard({
 
   var totalSpend = monthlyTotals.reduce(function(s, m) { return s + m.total; }, 0);
   var stats = [
-    { label: 'Total Spend',   value: fmt2(totalSpend),            icon: DollarSign,  color: 'border-l-violet-500', sub: 'all months' },
+    { label: 'Total Spend',   value: fmt2(totalSpend),            icon: DollarSign,  color: '', sub: 'all months', borderColor: chartTheme ? chartTheme.primary : undefined },
     { label: 'Lowest Month',  value: lowestMonth  ? lowestMonth.month  : '-', icon: TrendingDown, color: 'border-l-green-500',  sub: lowestMonth  ? fmt2(lowestMonth.total)  : '' },
     { label: 'Highest Month', value: highestMonth ? highestMonth.month : '-', icon: TrendingUp,   color: 'border-l-red-500',    sub: highestMonth ? fmt2(highestMonth.total) : '' },
     { label: 'Monthly Avg',   value: fmt2(monthlyAvg),            icon: Activity,    color: 'border-l-blue-500',   sub: 'per month' },
   ];
 
   var statCards = stats.map(function(s) {
-    return e('div', { key: s.label, className: 'bg-white/5 border border-white/10 border-l-4 ' + s.color + ' rounded-lg p-3' },
+    return e('div', { key: s.label, className: 'bg-white/5 border border-white/10 border-l-4 ' + s.color + ' rounded-lg p-3', style: s.borderColor ? { borderLeftColor: s.borderColor } : undefined },
       e('div', { className: 'flex items-center gap-1.5 mb-1' },
         e(s.icon, { className: 'w-3.5 h-3.5 text-purple-400' }),
         e('p', { className: 'text-purple-400 text-xs' }, s.label)

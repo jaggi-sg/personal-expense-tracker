@@ -310,7 +310,10 @@ const App = () => {
   };
 
   return (
-    <div className={`min-h-screen p-4 md:p-8 ${isDark ? 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900' : 'bg-gradient-to-br from-slate-100 via-violet-100 to-purple-100'}`}>
+    <div
+      className={`min-h-screen p-4 md:p-8 ${isDark ? '' : 'bg-gradient-to-br from-slate-100 via-violet-100 to-purple-100'}`}
+      style={isDark ? { background: `linear-gradient(to bottom right, #0f172a, ${chartTheme.bgMid}, #0f172a)` } : undefined}
+    >
       <div className="max-w-7xl mx-auto">
         <Header isDark={isDark} toggleTheme={toggleTheme} onOpenQR={() => setShowQR(true)} />
         <div className="flex justify-end mb-3 -mt-3">
@@ -326,6 +329,7 @@ const App = () => {
         {/* ── Summary ─────────────────────────────────────────────────────── */}
         {activeTab === 'summary' && (
           <Summary
+            chartTheme={chartTheme}
             expenses={expenses}
             categories={categories}
             nonRecurringCategories={nonRecurringCategories}
@@ -348,6 +352,7 @@ const App = () => {
         {/* ── Recurring ───────────────────────────────────────────────────── */}
         {activeTab === 'recurring' && (
           <RecurringExpenses
+            chartTheme={chartTheme}
             expenses={expenses}
             categories={categories}
             formData={recurringFormData}
@@ -395,6 +400,7 @@ const App = () => {
         {/* ── Non-Recurring ───────────────────────────────────────────────────── */}
         {activeTab === 'non-recurring' && (
           <NonRecurringExpenses
+            chartTheme={chartTheme}
             expenses={expenses}
             nonRecurringCategories={nonRecurringCategories}
             formData={nonRecurringFormData}
@@ -461,7 +467,7 @@ const App = () => {
         )}
 
         {activeTab === 'analytics' && (
-          <AdvancedAnalytics expenses={expenses} categories={categories} nonRecurringCategories={nonRecurringCategories} onCategoryClick={handleCategoryClick} />
+          <AdvancedAnalytics chartTheme={chartTheme} expenses={expenses} categories={categories} nonRecurringCategories={nonRecurringCategories} onCategoryClick={handleCategoryClick} />
         )}
 
         {activeTab === 'visualizations' && (

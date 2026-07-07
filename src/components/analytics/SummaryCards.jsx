@@ -10,7 +10,10 @@ const SummaryCards = ({
   filterDescription,
   type = 'Recurring',
   expenses = [],        // full expense list — used to derive pending/overdue
+  chartTheme,
 }) => {
+  const accent = chartTheme?.primary || '#a78bfa';
+  const accent2 = chartTheme?.secondary || '#f472b6';
   const isRecurring  = type === 'Recurring';
   const accentColor  = isRecurring ? 'green' : 'blue';
 
@@ -126,8 +129,8 @@ const SummaryCards = ({
       </div>
 
       {/* ── Card 3: Filtered Total ─────────────────────────────────────────── */}
-      <div className="relative overflow-hidden bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20 border-l-4 border-l-purple-400">
-        <div className="absolute -top-6 -right-6 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl pointer-events-none" />
+      <div className="relative overflow-hidden bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20 border-l-4" style={{ borderLeftColor: accent }}>
+        <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full blur-2xl pointer-events-none" style={{ background: `${accent}1a` }} />
 
         <div className="flex items-start justify-between mb-3">
           <div>
@@ -141,8 +144,8 @@ const SummaryCards = ({
               )}
             </p>
           </div>
-          <div className="bg-purple-500/20 p-2 rounded-lg">
-            <Filter className="w-5 h-5 text-purple-300" />
+          <div className="p-2 rounded-lg" style={{ background: `${accent}33` }}>
+            <Filter className="w-5 h-5" style={{ color: accent }} />
           </div>
         </div>
 
@@ -160,8 +163,8 @@ const SummaryCards = ({
               </div>
               <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-purple-400 to-pink-400 rounded-full transition-all duration-500"
-                  style={{ width: `${totalAmount > 0 ? Math.min((filteredTotal / totalAmount) * 100, 100) : 0}%` }}
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${totalAmount > 0 ? Math.min((filteredTotal / totalAmount) * 100, 100) : 0}%`, backgroundImage: `linear-gradient(to right, ${accent}, ${accent2})` }}
                 />
               </div>
             </div>

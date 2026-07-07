@@ -15,7 +15,7 @@ const MONTH_FULL  = ['January','February','March','April','May','June',
                      'July','August','September','October','November','December'];
 
 // ─── Sparkline (pure SVG inline bar chart) ───────────────────────────────────
-const Sparkline = ({ data }) => {
+const Sparkline = ({ data, baseColor = '#a78bfa' }) => {
   if (!data || data.length === 0) return null;
   const max = Math.max(...data.map(d => d.value), 1);
   const H = 44, totalW = 176;
@@ -32,7 +32,7 @@ const Sparkline = ({ data }) => {
             <rect
               x={x} y={H - barH} width={barW} height={barH}
               rx={2}
-              fill={d.isCurrent ? '#34d399' : '#a78bfa'}
+              fill={d.isCurrent ? '#34d399' : baseColor}
               opacity={d.isCurrent ? 1 : 0.5}
             />
             <title>{d.label}: ${d.value.toFixed(2)}</title>
@@ -58,6 +58,7 @@ const InsightCard = ({ icon, label, value, sub, accentClass }) => (
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 const Summary = ({
+  chartTheme,
   expenses,
   categories,
   nonRecurringCategories,
@@ -312,9 +313,12 @@ const Summary = ({
                         ? color.badge.color.includes('red')    ? 'bg-gradient-to-r from-red-400 to-red-600'
                         : color.badge.color.includes('yellow') ? 'bg-gradient-to-r from-yellow-400 to-yellow-600'
                         :                                        'bg-gradient-to-r from-green-400 to-green-600'
-                        : 'bg-gradient-to-r from-purple-400 to-pink-400'
+                        : ''
                     )}
-                    style={{ width: Math.min(pct, 100) + '%' }}
+                    style={{
+                      width: Math.min(pct, 100) + '%',
+                      ...(color.badge ? {} : { backgroundImage: `linear-gradient(to right, ${chartTheme.primary}, ${chartTheme.secondary})` }),
+                    }}
                   />
                 </div>
               </div>
@@ -359,7 +363,7 @@ const Summary = ({
             <span className="text-green-400">■</span>
             <span className="text-purple-500"> current month</span>
           </p>
-          <Sparkline data={sparkData} />
+          <Sparkline data={sparkData} baseColor={chartTheme.accent} />
           <div className="flex justify-between mt-1">
             <span className="text-purple-500 text-xs">{sparkData[0]?.label}</span>
             <span className="text-purple-500 text-xs">{sparkData[sparkData.length - 1]?.label}</span>

@@ -13,6 +13,7 @@ import SummaryCards from '../analytics/SummaryCards';
 import AddExpenseSection from '../forms/AddExpenseSection';
 
 const RecurringExpenses = ({
+  chartTheme,
   expenses,
   categories,
   formData,
@@ -132,6 +133,7 @@ const RecurringExpenses = ({
         filterDescription={getFilterDescription(filterMonth, filterYear, filterCategory)}
         type="Recurring"
         expenses={expenses}
+        chartTheme={chartTheme}
       />
 
       <AddExpenseSection

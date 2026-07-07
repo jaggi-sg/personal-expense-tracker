@@ -168,7 +168,7 @@ const MoMTable = ({ expenses, analysisType, selectedYear }) => {
   );
 };
 
-const BiggestExpenseCallout = ({ expenses, analysisType }) => {
+const BiggestExpenseCallout = ({ expenses, analysisType, chartTheme }) => {
   const typeLabel = analysisType === 'recurring' ? 'Recurring' : 'Non-Recurring';
   const paid = expenses.filter(e => e.type === typeLabel && e.status === 'PAID');
   if (!paid.length) return null;
@@ -176,8 +176,11 @@ const BiggestExpenseCallout = ({ expenses, analysisType }) => {
   const avg = paid.reduce((s, e) => s + e.amount, 0) / paid.length;
   const pctAbove = ((biggest.amount - avg) / avg * 100).toFixed(0);
   return (
-    <div className="relative overflow-hidden rounded-xl border border-violet-500/30 bg-gradient-to-br from-violet-500/10 to-purple-900/20 p-5">
-      <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-violet-500/10 blur-2xl pointer-events-none" />
+    <div
+      className="relative overflow-hidden rounded-xl border p-5"
+      style={{ borderColor: `${chartTheme.primary}4d`, backgroundImage: `linear-gradient(to bottom right, ${chartTheme.primary}1a, ${chartTheme.secondary}22)` }}
+    >
+      <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full blur-2xl pointer-events-none" style={{ background: `${chartTheme.primary}1a` }} />
       <div className="flex items-start gap-4">
         <div className="bg-yellow-500/20 border border-yellow-500/30 p-2.5 rounded-xl shrink-0">
           <Award className="w-5 h-5 text-yellow-400" />
@@ -203,7 +206,7 @@ const BiggestExpenseCallout = ({ expenses, analysisType }) => {
 };
 
 // ── Main component ────────────────────────────────────────────────────────────
-const AdvancedAnalytics = ({ expenses = [], categories = [], nonRecurringCategories = [], onCategoryClick }) => {
+const AdvancedAnalytics = ({ expenses = [], categories = [], nonRecurringCategories = [], onCategoryClick, chartTheme }) => {
   const [selectedYear, setSelectedYear] = useState('All');
   const [analysisType, setAnalysisType] = useState('recurring');
   const [categoryPage, setCategoryPage] = useState(1);
@@ -387,13 +390,13 @@ const AdvancedAnalytics = ({ expenses = [], categories = [], nonRecurringCategor
           </div>
         </div>
 
-        <BiggestExpenseCallout expenses={allYearExpenses} analysisType={analysisType} />
+        <BiggestExpenseCallout expenses={allYearExpenses} analysisType={analysisType} chartTheme={chartTheme} />
 
         <Card className="p-5">
           <SectionHeader icon={Calendar} iconColor="text-blue-400" title="Year-over-Year Comparison" sub="Total paid spend per year" />
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
             {Object.entries(yearOverYearData).sort((a, b) => b[0] - a[0]).map(([yr, data]) => (
-              <div key={yr} className="bg-white/5 border border-white/10 border-l-4 border-l-violet-500 rounded-lg p-3">
+              <div key={yr} className="bg-white/5 border border-white/10 border-l-4 rounded-lg p-3" style={{ borderLeftColor: chartTheme.primary }}>
                 <p className="text-purple-400 text-xs mb-1">{yr}</p>
                 <p className="text-white font-bold text-xl leading-none">{fmt(data.total)}</p>
                 <p className="text-purple-500 text-xs mt-1">{data.count} transactions</p>
@@ -439,7 +442,7 @@ const AdvancedAnalytics = ({ expenses = [], categories = [], nonRecurringCategor
             title="Spending Timeline"
             sub={'All-time ' + typeLabel + ' spend by month - hover bars for details'}
           />
-          <SpendingTimeline expenses={expenses} analysisType={analysisType} />
+          <SpendingTimeline expenses={expenses} analysisType={analysisType} chartTheme={chartTheme} />
         </Card>
 
         <Card className="p-5">
@@ -463,6 +466,7 @@ const AdvancedAnalytics = ({ expenses = [], categories = [], nonRecurringCategor
           onCategoryClick={onCategoryClick}
           selectedYear={selectedYear}
           filteredExpenses={filteredExpenses}
+          chartTheme={chartTheme}
           Card={Card}
           SectionHeader={SectionHeader}
           PieChart={PieChart}
@@ -476,6 +480,7 @@ const AdvancedAnalytics = ({ expenses = [], categories = [], nonRecurringCategor
           highestMonth={highestMonth}
           monthlyAvg={monthlyAvg}
           onDrillMonth={handleDrillMonth}
+          chartTheme={chartTheme}
           Card={Card}
           SectionHeader={SectionHeader}
           Activity={Activity}

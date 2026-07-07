@@ -14,6 +14,7 @@ import AddExpenseSection from '../forms/AddExpenseSection';
 import SubTransactionManager from './SubTransactionManager';
 
 const NonRecurringExpenses = ({
+  chartTheme,
   expenses,
   nonRecurringCategories,
   formData,
@@ -136,6 +137,7 @@ const NonRecurringExpenses = ({
         filterDescription={getFilterDescription(filterMonth, filterYear, filterCategory)}
         type="Non-Recurring"
         expenses={expenses}
+        chartTheme={chartTheme}
       />
 
       <AddExpenseSection

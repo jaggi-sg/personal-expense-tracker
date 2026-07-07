@@ -12,7 +12,7 @@ const fmtAmt = (n) => {
   return '$' + n.toFixed(0);
 };
 
-const SpendingTimeline = ({ expenses, analysisType }) => {
+const SpendingTimeline = ({ expenses, analysisType, chartTheme }) => {
   const [hoveredIdx, setHoveredIdx] = useState(null);
   const [mousePos,   setMousePos]   = useState({ x: 0, y: 0 });
   const typeLabel = analysisType === 'recurring' ? 'Recurring' : 'Non-Recurring';
@@ -45,11 +45,15 @@ const SpendingTimeline = ({ expenses, analysisType }) => {
   const GAP       = 6;   // px gap between bars
   const TOOLTIP_H = 140; // px reserved above chart for tooltips
 
-  const getBarColor = (b) => {
-    if (b.total > avgTotal * 1.5) return 'from-red-500 to-orange-400';   // spike
-    if (b.total < avgTotal * 0.5 && b.total > 0) return 'from-slate-500 to-slate-400'; // dip
-    return 'from-violet-500 to-purple-400'; // normal
+  const getBarKind = (b) => {
+    if (b.total > avgTotal * 1.5) return 'spike';
+    if (b.total < avgTotal * 0.5 && b.total > 0) return 'dip';
+    return 'normal';
   };
+  const barGradientClass = { spike: 'from-red-500 to-orange-400', dip: 'from-slate-500 to-slate-400', normal: '' };
+  const normalBarStyle = chartTheme
+    ? { backgroundImage: `linear-gradient(to top, ${chartTheme.primary}, ${chartTheme.secondary})` }
+    : {};
 
   const spikes = buckets.filter(b => b.total > avgTotal * 1.5);
 
@@ -59,7 +63,7 @@ const SpendingTimeline = ({ expenses, analysisType }) => {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4 text-xs text-purple-400">
           <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-sm inline-block bg-violet-500" />
+            <span className="w-3 h-3 rounded-sm inline-block" style={chartTheme ? { background: chartTheme.primary } : { background: '#8b5cf6' }} />
             Normal spend
           </span>
           <span className="flex items-center gap-1.5">
@@ -96,7 +100,9 @@ const SpendingTimeline = ({ expenses, analysisType }) => {
             const isNew   = i === 0 || b.year !== buckets[i - 1].year;
             const barLeft = i * (BAR_W + GAP);
             const isHov   = hoveredIdx === i;
-            const barCls  = 'absolute bottom-0 rounded-t transition-all duration-200 bg-gradient-to-t ' + getBarColor(b)
+            const kind    = getBarKind(b);
+            const barCls  = 'absolute bottom-0 rounded-t transition-all duration-200 '
+              + (kind === 'normal' ? '' : 'bg-gradient-to-t ' + barGradientClass[kind])
               + (isHov ? ' brightness-125 ring-1 ring-white/30' : '');
 
             return (
@@ -114,7 +120,7 @@ const SpendingTimeline = ({ expenses, analysisType }) => {
                   </div>
                 )}
                 {/* Bar */}
-                <div className={barCls} style={{ width: '100%', height: barH + 'px' }} />
+                <div className={barCls} style={{ width: '100%', height: barH + 'px', ...(kind === 'normal' ? normalBarStyle : {}) }} />
               </div>
             );
           })}
