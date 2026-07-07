@@ -286,20 +286,22 @@ const Summary = ({
             <div
               key={category}
               onClick={() => { setDrillCat({ category, type }); setDrillOpen(true); }}
-              className={'rounded-lg p-3 border transition-all hover:brightness-110 cursor-pointer hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/20 active:scale-[0.98] ' + color.bg + ' ' + color.border}
+              className={'rounded-xl p-4 border transition-all hover:brightness-110 cursor-pointer hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/20 active:scale-[0.98] ' + color.bg + ' ' + color.border}
             >
-              <div className="flex items-center gap-2 mb-1">
-                <div className="text-purple-300">{getCategoryIcon(category)}</div>
-                <h3 className="text-purple-200 text-xs truncate flex-1">{category}</h3>
+              <div className="flex items-center gap-2 mb-1.5">
+                <div className="text-purple-300 shrink-0">{getCategoryIcon(category)}</div>
+                <h3 title={category} className="text-white text-sm font-semibold leading-tight break-words flex-1">{category}</h3>
+              </div>
+              <div className="flex items-baseline justify-between gap-2">
+                <p className="text-xl font-bold text-white">{'$' + amount.toFixed(2)}</p>
                 <span className="text-purple-400 text-xs font-medium shrink-0">{pct.toFixed(1)}%</span>
               </div>
-              <p className="text-lg font-bold text-white">{'$' + amount.toFixed(2)}</p>
               {color.badge && (
                 <p className={'text-xs font-semibold mt-1 ' + color.badge.color}>
                   {color.badge.label}
                 </p>
               )}
-              <div className="mt-2 h-1 rounded-full bg-white/10 overflow-hidden">
+              <div className="mt-2 h-1.5 rounded-full bg-white/10 overflow-hidden">
                 <div
                   className={'h-full rounded-full transition-all duration-500 ' + (
                     color.badge
@@ -311,10 +313,6 @@ const Summary = ({
                   style={{ width: Math.min(pct, 100) + '%' }}
                 />
               </div>
-              {/* Drill-down hint */}
-              <p className="text-purple-600 text-[10px] mt-1.5 opacity-0 hover:opacity-100 transition-opacity">
-                Click to drill down
-              </p>
             </div>
           );
         })}
