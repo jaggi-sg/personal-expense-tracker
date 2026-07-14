@@ -311,9 +311,13 @@ const App = () => {
 
   return (
     <div
-      className={`min-h-screen p-4 md:p-8 ${isDark ? '' : 'bg-gradient-to-br from-slate-100 via-violet-100 to-purple-100'}`}
-      style={isDark ? { background: `linear-gradient(to bottom right, #0f172a, ${chartTheme.bgMid}, #0f172a)` } : undefined}
-    >
+          className="min-h-screen p-4 md:p-8"
+          style={{
+            background: isDark
+              ? `linear-gradient(to bottom right, #0f172a, ${chartTheme.bgMid}, #0f172a)`
+              : `linear-gradient(to bottom right, #f1f5f9, ${chartTheme.bgMidLight}, #faf5ff)`,
+          }}
+        >
       <div className="max-w-7xl mx-auto">
         <Header isDark={isDark} toggleTheme={toggleTheme} onOpenQR={() => setShowQR(true)} />
         <div className="flex justify-end mb-3 -mt-3">
