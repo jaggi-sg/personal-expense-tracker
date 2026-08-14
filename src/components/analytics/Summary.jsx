@@ -8,6 +8,7 @@ import {
 import RecurringHealthCard from './RecurringHealthCard';
 import AnomalyBanner from './AnomalyBanner';
 import CategoryDrillDownModal from './CategoryDrillDownModal';
+import { useChartTheme } from '../../hooks/useChartTheme';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -15,7 +16,7 @@ const MONTH_FULL  = ['January','February','March','April','May','June',
                      'July','August','September','October','November','December'];
 
 // ─── Sparkline (pure SVG inline bar chart) ───────────────────────────────────
-const Sparkline = ({ data, baseColor = '#a78bfa' }) => {
+const Sparkline = ({ data }) => {
   if (!data || data.length === 0) return null;
   const max = Math.max(...data.map(d => d.value), 1);
   const H = 44, totalW = 176;
@@ -32,7 +33,7 @@ const Sparkline = ({ data, baseColor = '#a78bfa' }) => {
             <rect
               x={x} y={H - barH} width={barW} height={barH}
               rx={2}
-              fill={d.isCurrent ? '#34d399' : baseColor}
+              fill={d.isCurrent ? '#34d399' : '#a78bfa'}
               opacity={d.isCurrent ? 1 : 0.5}
             />
             <title>{d.label}: ${d.value.toFixed(2)}</title>
@@ -58,7 +59,6 @@ const InsightCard = ({ icon, label, value, sub, accentClass }) => (
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 const Summary = ({
-  chartTheme,
   expenses,
   categories,
   nonRecurringCategories,
@@ -74,6 +74,7 @@ const Summary = ({
   onImportClick,
   onStatusChange,
 }) => {
+  const { theme: safeTheme } = useChartTheme();
   const [hideZero,  setHideZero]  = useState(true);
   const [drillCat,  setDrillCat]  = useState(null);
   const [drillOpen, setDrillOpen] = useState(false);
@@ -141,14 +142,11 @@ const Summary = ({
       badge: null,
     };
     const ratio = amount / avg;
-    if (ratio > 1.2) {
-      const pctOver = (ratio - 1) * 100;
-      return {
-        border: 'border-red-500/40',
-        bg: 'bg-red-500/10',
-        badge: { label: pctOver > 200 ? '≫ avg' : `+${pctOver.toFixed(0)}% vs avg`, color: 'text-red-400' },
-      };
-    }
+    if (ratio > 1.2) return {
+      border: 'border-red-500/40',
+      bg: 'bg-red-500/10',
+      badge: { label: `+${((ratio - 1) * 100).toFixed(0)}% vs avg`, color: 'text-red-400' },
+    };
     if (ratio > 0.8) return {
       border: 'border-yellow-500/30',
       bg: 'bg-yellow-500/5',
@@ -282,7 +280,7 @@ const Summary = ({
     if (!entries.length)
       return <p className="text-purple-400 text-sm">No paid expenses for this period.</p>;
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 items-stretch">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {entries.map(([category, amount]) => {
           const pct   = total > 0 ? (amount / total) * 100 : 0;
           const color = getCategoryColor(category, amount, averages);
@@ -290,38 +288,35 @@ const Summary = ({
             <div
               key={category}
               onClick={() => { setDrillCat({ category, type }); setDrillOpen(true); }}
-              className={'flex flex-col h-full rounded-xl p-3.5 border transition-all hover:brightness-110 cursor-pointer hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/20 active:scale-[0.98] ' + color.bg + ' ' + color.border}
+              className={'rounded-lg p-3 border transition-all hover:brightness-110 cursor-pointer hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/20 active:scale-[0.98] ' + color.bg + ' ' + color.border}
             >
-              <div className="flex items-start gap-2 min-h-[2.5rem]">
-                <div className="text-purple-300 shrink-0 mt-0.5">{getCategoryIcon(category)}</div>
-                <h3 title={category} className="text-white text-sm font-semibold leading-tight break-words line-clamp-2 flex-1">{category}</h3>
-              </div>
-              <div className="flex items-baseline justify-between gap-2 mt-1.5">
-                <p className="text-xl font-bold text-white">{'$' + amount.toFixed(2)}</p>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="text-purple-300">{getCategoryIcon(category)}</div>
+                <h3 className="text-purple-200 text-xs truncate flex-1">{category}</h3>
                 <span className="text-purple-400 text-xs font-medium shrink-0">{pct.toFixed(1)}%</span>
               </div>
-              <div className="mt-auto pt-2">
-                {color.badge && (
-                  <p className={'text-xs font-semibold mb-1 ' + color.badge.color}>
-                    {color.badge.label}
-                  </p>
-                )}
-                <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
-                  <div
-                    className={'h-full rounded-full transition-all duration-500 ' + (
-                      color.badge
-                        ? color.badge.color.includes('red')    ? 'bg-gradient-to-r from-red-400 to-red-600'
-                        : color.badge.color.includes('yellow') ? 'bg-gradient-to-r from-yellow-400 to-yellow-600'
-                        :                                        'bg-gradient-to-r from-green-400 to-green-600'
-                        : ''
-                    )}
-                    style={{
-                      width: Math.min(pct, 100) + '%',
-                      ...(color.badge ? {} : { backgroundImage: `linear-gradient(to right, ${chartTheme.primary}, ${chartTheme.secondary})` }),
-                    }}
-                  />
-                </div>
+              <p className="text-lg font-bold text-white">{'$' + amount.toFixed(2)}</p>
+              {color.badge && (
+                <p className={'text-xs font-semibold mt-1 ' + color.badge.color}>
+                  {color.badge.label}
+                </p>
+              )}
+              <div className="mt-2 h-1 rounded-full bg-white/10 overflow-hidden">
+                <div
+                  className={'h-full rounded-full transition-all duration-500 ' + (
+                    color.badge
+                      ? color.badge.color.includes('red')    ? 'bg-gradient-to-r from-red-400 to-red-600'
+                      : color.badge.color.includes('yellow') ? 'bg-gradient-to-r from-yellow-400 to-yellow-600'
+                      :                                        'bg-gradient-to-r from-green-400 to-green-600'
+                      : 'bg-gradient-to-r from-purple-400 to-pink-400'
+                  )}
+                  style={{ width: Math.min(pct, 100) + '%' }}
+                />
               </div>
+              {/* Drill-down hint */}
+              <p className="text-purple-600 text-[10px] mt-1.5 opacity-0 hover:opacity-100 transition-opacity">
+                Click to drill down
+              </p>
             </div>
           );
         })}
@@ -334,7 +329,7 @@ const Summary = ({
     const topCat   = topCategoryThisMonth(expList);
     const bigChg   = biggestCategoryChange(expList);
     return (
-      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20 h-full flex flex-col gap-3">
+      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-5 border border-white/20 h-full flex flex-col gap-4">
         {/* ── Header ── */}
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -363,7 +358,7 @@ const Summary = ({
             <span className="text-green-400">■</span>
             <span className="text-purple-500"> current month</span>
           </p>
-          <Sparkline data={sparkData} baseColor={chartTheme.accent} />
+          <Sparkline data={sparkData} />
           <div className="flex justify-between mt-1">
             <span className="text-purple-500 text-xs">{sparkData[0]?.label}</span>
             <span className="text-purple-500 text-xs">{sparkData[sparkData.length - 1]?.label}</span>
@@ -405,26 +400,6 @@ const Summary = ({
       {/* ── Anomaly Banner ─────────────────────────────────────────────────── */}
       <AnomalyBanner expenses={expenses} />
 
-      {/* ── Shared Toolbar + Legend ────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setHideZero(!hideZero)}
-            className="flex items-center gap-1.5 text-xs text-purple-300 hover:text-white transition-colors"
-          >
-            {hideZero ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-            {hideZero ? 'Show $0' : 'Hide $0'}
-          </button>
-          <YearSelect />
-        </div>
-        <div className="flex flex-wrap gap-3 text-xs">
-          <span className="flex items-center gap-1.5 text-red-400"><span className="w-2 h-2 rounded-full bg-red-400 inline-block"/>Above avg (&gt;20%)</span>
-          <span className="flex items-center gap-1.5 text-yellow-400"><span className="w-2 h-2 rounded-full bg-yellow-400 inline-block"/>Near avg (±20%)</span>
-          <span className="flex items-center gap-1.5 text-green-400"><span className="w-2 h-2 rounded-full bg-green-400 inline-block"/>Below avg</span>
-          <span className="flex items-center gap-1.5 text-purple-400"><span className="w-2 h-2 rounded-full bg-purple-400 inline-block"/>No history</span>
-        </div>
-      </div>
-
       {/* ── Recurring Health + Total Row ───────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
         <div className="lg:col-span-4 space-y-4">
@@ -442,14 +417,31 @@ const Summary = ({
           />
         </div>
         <div className="lg:col-span-8">
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20">
+          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 h-full">
             <div className="flex items-center justify-between mb-1">
               <h2 className="text-xl font-bold text-white">Recurring Expenses Summary</h2>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setHideZero(!hideZero)}
+                  className="flex items-center gap-1.5 text-xs text-purple-300 hover:text-white transition-colors"
+                >
+                  {hideZero ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  {hideZero ? 'Show $0' : 'Hide $0'}
+                </button>
+                <YearSelect />
+              </div>
             </div>
             <p className="text-purple-200 text-xs mb-3">
               Total Paid for {filterYear === 'All' ? 'All Years' : filterYear}:{' '}
               <span className="text-white font-bold text-base">${getYearlyTotal('Recurring').toFixed(2)}</span>
             </p>
+            {/* Color legend */}
+            <div className="flex flex-wrap gap-3 mb-4 text-xs">
+              <span className="flex items-center gap-1.5 text-red-400"><span className="w-2 h-2 rounded-full bg-red-400 inline-block"/>Above avg (&gt;20%)</span>
+              <span className="flex items-center gap-1.5 text-yellow-400"><span className="w-2 h-2 rounded-full bg-yellow-400 inline-block"/>Near avg (±20%)</span>
+              <span className="flex items-center gap-1.5 text-green-400"><span className="w-2 h-2 rounded-full bg-green-400 inline-block"/>Below avg</span>
+              <span className="flex items-center gap-1.5 text-purple-400"><span className="w-2 h-2 rounded-full bg-purple-400 inline-block"/>No history</span>
+            </div>
             <CategoryGrid type="Recurring" total={recurringTotal} averages={recurringAverages} />
           </div>
         </div>
@@ -482,21 +474,38 @@ const Summary = ({
           />
         </div>
         <div className="lg:col-span-8">
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20">
+          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 h-full">
             <div className="flex items-center justify-between mb-1">
               <h2 className="text-xl font-bold text-white">Non-Recurring Expenses Summary</h2>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setHideZero(!hideZero)}
+                  className="flex items-center gap-1.5 text-xs text-purple-300 hover:text-white transition-colors"
+                >
+                  {hideZero ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  {hideZero ? 'Show $0' : 'Hide $0'}
+                </button>
+                <YearSelect />
+              </div>
             </div>
             <p className="text-purple-200 text-xs mb-3">
               Total Paid for {filterYear === 'All' ? 'All Years' : filterYear}:{' '}
               <span className="text-white font-bold text-base">${getYearlyTotal('Non-Recurring').toFixed(2)}</span>
             </p>
+            {/* Color legend */}
+            <div className="flex flex-wrap gap-3 mb-4 text-xs">
+              <span className="flex items-center gap-1.5 text-red-400"><span className="w-2 h-2 rounded-full bg-red-400 inline-block"/>Above avg (&gt;20%)</span>
+              <span className="flex items-center gap-1.5 text-yellow-400"><span className="w-2 h-2 rounded-full bg-yellow-400 inline-block"/>Near avg (±20%)</span>
+              <span className="flex items-center gap-1.5 text-green-400"><span className="w-2 h-2 rounded-full bg-green-400 inline-block"/>Below avg</span>
+              <span className="flex items-center gap-1.5 text-purple-400"><span className="w-2 h-2 rounded-full bg-purple-400 inline-block"/>No history</span>
+            </div>
             <CategoryGrid type="Non-Recurring" total={nonRecurringTotal} averages={nonRecurringAverages} />
           </div>
         </div>
       </div>
 
       {/* ── Data Management ────────────────────────────────────────────────── */}
-      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20">
+      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
         <h2 className="text-xl font-bold text-white mb-1">Data Management</h2>
         <p className="text-purple-400 text-xs mb-4">
           Use <span className="text-violet-300 font-semibold">Full Backup</span> to preserve categories &amp; payment types across ports/devices.

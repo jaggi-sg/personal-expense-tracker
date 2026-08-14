@@ -12,6 +12,7 @@ import BackupReminder from './components/layout/BackupReminder';
 import SaveTemplateModal from './components/forms/SaveTemplateModal';
 import ImportPreviewModal from './components/modals/ImportPreviewModal';
 import BulkEditModal from './components/expenses/BulkEditModal';
+import BulkAddModal from './components/expenses/BulkAddModal';
 import SkipMonthModal from './components/expenses/SkipMonthModal';
 import CategoryDrillDownModal from './components/analytics/CategoryDrillDownModal';
 import QRScanModal from './components/scanner/QRScanModal';
@@ -202,6 +203,10 @@ const App = () => {
   // ── Bulk edit ────────────────────────────────────────────────────────────────
   const [bulkEditIds,       setBulkEditIds]       = useState([]);
   const [showBulkEditModal, setShowBulkEditModal] = useState(false);
+  const [showBulkAddModal,  setShowBulkAddModal]  = useState(false);
+  const [bulkAddType,       setBulkAddType]        = useState('Recurring');
+
+  const openBulkAdd = (type) => { setBulkAddType(type); setShowBulkAddModal(true); };
 
   const handleOpenBulkEdit = (ids) => {
     setBulkEditIds(ids);
@@ -294,7 +299,9 @@ const App = () => {
   useAutoRecurringExpenses(expenses, categories, saveExpenses);
 
   if (loading) return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center"
+      style={{ background: '#080610' }}
+    >
       <div className="text-white text-xl">Loading...</div>
     </div>
   );
@@ -310,18 +317,16 @@ const App = () => {
   };
 
   return (
-    <div
-          className="min-h-screen p-4 md:p-8"
-          style={{
-            background: isDark
-              ? `linear-gradient(to bottom right, #0f172a, ${chartTheme.bgMid}, #0f172a)`
-              : `linear-gradient(to bottom right, #f1f5f9, ${chartTheme.bgMidLight}, #faf5ff)`,
-          }}
-        >
+    <div className={'min-h-screen p-4 md:p-8 transition-colors duration-500' + (isDark ? '' : ' light-mode-text')}
+      style={isDark
+        ? { background: 'radial-gradient(ellipse at top, rgba(var(--theme-bg-mid-rgb),0.8) 0%, transparent 70%), radial-gradient(ellipse at bottom, rgba(var(--theme-primary-rgb),0.4) 0%, transparent 70%), #080610' }
+        : { background: 'radial-gradient(ellipse at top, rgba(var(--theme-primary-rgb),0.15) 0%, transparent 70%), radial-gradient(ellipse at bottom, var(--theme-bg-light) 0%, transparent 70%), #f1f5f9' }
+      }
+    >
       <div className="max-w-7xl mx-auto">
         <Header isDark={isDark} toggleTheme={toggleTheme} onOpenQR={() => setShowQR(true)} />
         <div className="flex justify-end mb-3 -mt-3">
-          <ChartThemePicker themeKey={themeKey} setTheme={setChartTheme} />
+          <ChartThemePicker />
         </div>
 
         {showBackupReminder && (
@@ -333,7 +338,6 @@ const App = () => {
         {/* ── Summary ─────────────────────────────────────────────────────── */}
         {activeTab === 'summary' && (
           <Summary
-            chartTheme={chartTheme}
             expenses={expenses}
             categories={categories}
             nonRecurringCategories={nonRecurringCategories}
@@ -356,7 +360,6 @@ const App = () => {
         {/* ── Recurring ───────────────────────────────────────────────────── */}
         {activeTab === 'recurring' && (
           <RecurringExpenses
-            chartTheme={chartTheme}
             expenses={expenses}
             categories={categories}
             formData={recurringFormData}
@@ -395,6 +398,23 @@ const App = () => {
             onSaveTemplate={() => setShowSaveTemplateModal(true)}
             onClearForm={() => resetRecurringForm('Recurring')}
             onCloneExpense={handleCloneExpense}
+            onOpenBulkAdd={() => openBulkAdd('Recurring')}
+            onScanAddExpense={(data) => {
+              const newExpense = {
+                id: Date.now().toString(),
+                type: 'Recurring',
+                description: data.description || '',
+                amount: parseFloat(data.amount) || 0,
+                date: data.date || new Date().toISOString().split('T')[0],
+                month: data.month || '',
+                category: data.category || '',
+                paymentType: data.paymentType || '',
+                by: data.by || '',
+                note: data.note || '',
+                status: data.status || 'PAID',
+              };
+              saveExpenses([...expenses, newExpense]);
+            }}
             onBulkClone={handleBulkCloneExpense}
             {...sharedTableProps}
           />
@@ -404,7 +424,6 @@ const App = () => {
         {/* ── Non-Recurring ───────────────────────────────────────────────────── */}
         {activeTab === 'non-recurring' && (
           <NonRecurringExpenses
-            chartTheme={chartTheme}
             expenses={expenses}
             nonRecurringCategories={nonRecurringCategories}
             formData={nonRecurringFormData}
@@ -466,16 +485,17 @@ const App = () => {
             onClearForm={() => resetNonRecurringForm('Non-Recurring')}
             onCloneExpense={handleCloneExpense}
             onBulkClone={handleBulkCloneExpense}
+            onOpenBulkAdd={() => openBulkAdd('Non-Recurring')}
             {...sharedTableProps}
           />
         )}
 
         {activeTab === 'analytics' && (
-          <AdvancedAnalytics chartTheme={chartTheme} expenses={expenses} categories={categories} nonRecurringCategories={nonRecurringCategories} onCategoryClick={handleCategoryClick} />
+          <AdvancedAnalytics expenses={expenses} categories={categories} nonRecurringCategories={nonRecurringCategories} onCategoryClick={handleCategoryClick} />
         )}
 
         {activeTab === 'visualizations' && (
-          <Visualizations expenses={expenses} filterYear={filterYear} setFilterYear={setFilterYear} availableYears={availableYears} onCategoryClick={handleCategoryClick} chartTheme={chartTheme} />
+          <Visualizations expenses={expenses} filterYear={filterYear} setFilterYear={setFilterYear} availableYears={availableYears} onCategoryClick={handleCategoryClick} />
         )}
 
         {/* ── Modals ──────────────────────────────────────────────────────── */}
@@ -495,6 +515,16 @@ const App = () => {
           nonRecurringCategories={nonRecurringCategories}
           paymentTypes={paymentTypes}
           onApply={handleApplyBulkEdit}
+        />
+
+        <BulkAddModal
+          isOpen={showBulkAddModal}
+          onClose={() => setShowBulkAddModal(false)}
+          onBulkAdd={(newExpenses) => saveExpenses([...expenses, ...newExpenses])}
+          categories={bulkAddType === 'Recurring' ? categories : nonRecurringCategories}
+          paymentTypes={paymentTypes}
+          paidByOptions={paidByOptions}
+          expenseType={bulkAddType}
         />
 
         <SkipMonthModal

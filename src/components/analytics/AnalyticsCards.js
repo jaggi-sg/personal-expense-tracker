@@ -26,19 +26,19 @@ export function CategoryPatternsCard({
   onPrev, onNext,
   onCategoryClick, selectedYear,
   filteredExpenses,
-  chartTheme,
   Card, SectionHeader, PieChart,
+  theme,
 }) {
-  const barGradient = chartTheme
-    ? { backgroundImage: 'linear-gradient(to right, ' + chartTheme.primary + ', ' + chartTheme.secondary + ')' }
-    : {};
+  var barColor = theme && theme.primary ? theme.primary : '#7c3aed';
+  var barColor2 = theme && theme.secondary ? theme.secondary : '#a855f7';
+
   // Bar chart rows
   const bars = topCategories.map(function(entry) {
     var cat  = entry[0];
     var data = entry[1];
     var w    = topCategories[0][1].total > 0 ? (data.total / topCategories[0][1].total) * 100 : 0;
     var cls  = onCategoryClick
-      ? 'group rounded-lg px-2 py-1.5 -mx-2 transition-colors cursor-pointer hover:bg-white/8'
+      ? 'group rounded-lg px-2 py-1.5 -mx-2 transition-colors cursor-pointer hover:bg-white/10'
       : 'group rounded-lg px-2 py-1.5 -mx-2 transition-colors';
 
     return e('div', { key: cat, className: cls, onClick: function() { onCategoryClick && onCategoryClick(cat, selectedYear); } },
@@ -52,8 +52,10 @@ export function CategoryPatternsCard({
           e(TrendBadge, { direction: data.trendDirection, value: data.trendPercent })
         )
       ),
-      e('div', { className: 'h-2 bg-white/8 rounded-full overflow-hidden' },
-        e('div', { className: 'h-full rounded-full transition-all duration-500', style: Object.assign({ width: w + '%' }, barGradient) })
+      e('div', { className: 'h-2 bg-white/10 rounded-full overflow-hidden' },
+        e('div', { style: { width: w + '%', height: '100%', borderRadius: '9999px',
+            background: 'linear-gradient(to right, ' + barColor + ', ' + barColor2 + ')',
+            transition: 'width 0.5s' } })
       )
     );
   });
@@ -73,7 +75,7 @@ export function CategoryPatternsCard({
     var cat  = entry[0];
     var data = entry[1];
     var pct  = grandTotal > 0 ? ((data.total / grandTotal) * 100).toFixed(1) : '0.0';
-    return e('tr', { key: cat, className: 'border-b border-white/8 hover:bg-white/5 transition-colors' },
+    return e('tr', { key: cat, className: 'border-b border-white/10 hover:bg-white/5 transition-colors' },
       e('td', { className: 'py-2 pr-4 text-white font-medium' }, cat),
       e('td', { className: 'py-2 px-2 text-white font-semibold text-right' }, fmt(data.total)),
       e('td', { className: 'py-2 px-2 text-purple-300 text-right' }, data.count),
@@ -126,28 +128,32 @@ export function MonthlyTotalsCard({
   monthlyTotals, maxMonthly, MONTHS_FULL,
   lowestMonth, highestMonth, monthlyAvg,
   onDrillMonth,
-  chartTheme,
   Card, SectionHeader, Activity, DollarSign, TrendingDown, TrendingUp,
+  theme,
 }) {
-  var fmt2 = fmt;
-  var monthlyBarGradient = chartTheme
-    ? { backgroundImage: 'linear-gradient(to right, ' + chartTheme.primary + ', ' + chartTheme.secondary + ')' }
-    : {};
+  var fmt2     = fmt;
+  var barColor  = theme && theme.recurring ? theme.recurring.bar : 'rgba(124,58,237,0.85)';
+  var barColor2 = theme && theme.secondary ? theme.secondary     : '#ec4899';
 
   var bars = monthlyTotals.map(function(data, idx) {
     var hasData  = data.total > 0;
     var cls      = hasData ? 'flex items-center gap-3 group cursor-pointer' : 'flex items-center gap-3 group';
-    var barCls   = hasData
-      ? 'h-full rounded-full transition-all duration-500 flex items-center justify-end pr-3'
-      : 'h-full';
     var barW     = maxMonthly > 0 ? (data.total / maxMonthly) * 100 : 0;
     var minW     = hasData ? 56 : 0;
     var handleCl = hasData ? function() { onDrillMonth(idx, MONTHS_FULL[idx]); } : undefined;
 
     return e('div', { key: data.month, className: cls, onClick: handleCl },
       e('span', { className: 'w-9 text-purple-300 text-xs font-semibold shrink-0' }, data.month),
-      e('div', { className: 'flex-1 bg-white/8 rounded-full h-7 overflow-hidden relative' },
-        e('div', { className: barCls, style: Object.assign({ width: barW + '%', minWidth: minW }, hasData ? monthlyBarGradient : {}) },
+      e('div', { className: 'flex-1 bg-white/10 rounded-full h-7 overflow-hidden relative' },
+        e('div', {
+          style: {
+            width: barW + '%', minWidth: hasData ? minW : 0, height: '100%',
+            borderRadius: '9999px',
+            background: hasData ? ('linear-gradient(to right, ' + barColor + ', ' + barColor2 + ')') : 'transparent',
+            transition: 'width 0.5s',
+            display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '12px',
+          }
+        },
           hasData && e('span', { className: 'text-white text-xs font-bold whitespace-nowrap' }, fmt2(data.total))
         )
       ),
@@ -159,14 +165,14 @@ export function MonthlyTotalsCard({
 
   var totalSpend = monthlyTotals.reduce(function(s, m) { return s + m.total; }, 0);
   var stats = [
-    { label: 'Total Spend',   value: fmt2(totalSpend),            icon: DollarSign,  color: '', sub: 'all months', borderColor: chartTheme ? chartTheme.primary : undefined },
+    { label: 'Total Spend',   value: fmt2(totalSpend),            icon: DollarSign,  color: 'border-l-violet-500', sub: 'all months' },
     { label: 'Lowest Month',  value: lowestMonth  ? lowestMonth.month  : '-', icon: TrendingDown, color: 'border-l-green-500',  sub: lowestMonth  ? fmt2(lowestMonth.total)  : '' },
     { label: 'Highest Month', value: highestMonth ? highestMonth.month : '-', icon: TrendingUp,   color: 'border-l-red-500',    sub: highestMonth ? fmt2(highestMonth.total) : '' },
     { label: 'Monthly Avg',   value: fmt2(monthlyAvg),            icon: Activity,    color: 'border-l-blue-500',   sub: 'per month' },
   ];
 
   var statCards = stats.map(function(s) {
-    return e('div', { key: s.label, className: 'bg-white/5 border border-white/10 border-l-4 ' + s.color + ' rounded-lg p-3', style: s.borderColor ? { borderLeftColor: s.borderColor } : undefined },
+    return e('div', { key: s.label, className: 'bg-white/5 border border-white/10 border-l-4 ' + s.color + ' rounded-lg p-3' },
       e('div', { className: 'flex items-center gap-1.5 mb-1' },
         e(s.icon, { className: 'w-3.5 h-3.5 text-purple-400' }),
         e('p', { className: 'text-purple-400 text-xs' }, s.label)

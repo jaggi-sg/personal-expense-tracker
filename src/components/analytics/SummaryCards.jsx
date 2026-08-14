@@ -1,7 +1,11 @@
-// src/components/SummaryCards.jsx
+// src/components/expenses/SummaryCards.jsx
 
 import React from 'react';
-import { TrendingUp, DollarSign, Filter, Clock, AlertTriangle } from 'lucide-react';
+import { TrendingUp, TrendingDown, Clock, AlertTriangle, CheckCircle, Zap } from 'lucide-react';
+import { useChartTheme } from '../../hooks/useChartTheme';
+
+const fmt = (n) => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtK = (n) => n >= 10000 ? '$' + (n / 1000).toFixed(1) + 'k' : fmt(n);
 
 const SummaryCards = ({
   totalAmount,
@@ -9,187 +13,173 @@ const SummaryCards = ({
   filteredTotal,
   filterDescription,
   type = 'Recurring',
-  expenses = [],        // full expense list — used to derive pending/overdue
-  chartTheme,
+  expenses = [],
 }) => {
-  const accent = chartTheme?.primary || '#a78bfa';
-  const accent2 = chartTheme?.secondary || '#f472b6';
-  const isRecurring  = type === 'Recurring';
-  const accentColor  = isRecurring ? 'green' : 'blue';
+  const { theme } = useChartTheme();
+  const typeList    = expenses.filter(e => e.type === type);
+  const paidList    = typeList.filter(e => e.status === 'PAID');
+  const pendingList = typeList.filter(e => e.status === 'PENDING');
+  const overdueList = typeList.filter(e => e.status === 'OVERDUE');
 
-  // full literal class strings so Tailwind never purges them
-  const ACCENT = {
-    green: { borderL: 'border-l-green-700', glow: 'bg-green-700/10', iconBg: 'bg-green-700/20', iconText: 'text-green-900' },
-    blue:  { borderL: 'border-l-blue-700',  glow: 'bg-blue-700/10',  iconBg: 'bg-blue-700/20',  iconText: 'text-blue-900'  },
-  }[accentColor];
+  const pendingAmt  = pendingList.reduce((s, e) => s + e.amount, 0);
+  const overdueAmt  = overdueList.reduce((s, e) => s + e.amount, 0);
+  const paidPct     = totalEntries > 0 ? Math.round((paidList.length / totalEntries) * 100) : 0;
+  const actionCount = pendingList.length + overdueList.length;
+  const hasAction   = actionCount > 0;
+  const avgPerEntry = paidList.length > 0 ? totalAmount / paidList.length : 0;
 
-  // ── Derived pending / overdue from the passed expense list ───────────────
-  const typeList     = expenses.filter(e => e.type === type);
-  const pendingList  = typeList.filter(e => e.status === 'PENDING');
-  const overdueList  = typeList.filter(e => e.status === 'OVERDUE');
-  const paidList     = typeList.filter(e => e.status === 'PAID');
+  // Month-over-month
+  const byMonth = {};
+  paidList.forEach(e => {
+    const k = e.date?.slice(0, 7);
+    if (k) byMonth[k] = (byMonth[k] || 0) + e.amount;
+  });
+  const months  = Object.keys(byMonth).sort();
+  const lastAmt = months.length >= 1 ? byMonth[months[months.length - 1]] : 0;
+  const prevAmt = months.length >= 2 ? byMonth[months[months.length - 2]] : 0;
+  const momDiff = prevAmt > 0 ? ((lastAmt - prevAmt) / prevAmt) * 100 : null;
+  const momUp   = momDiff !== null && momDiff > 0;
 
-  const pendingTotal = pendingList.reduce((s, e) => s + e.amount, 0);
-  const overdueTotal = overdueList.reduce((s, e) => s + e.amount, 0);
-  const paidPct      = totalEntries > 0 ? Math.round((paidList.length / totalEntries) * 100) : 0;
+  // Theme colors
+  const primary   = theme?.primary   || '#7c3aed';
+  const gradient  = theme?.gradient  || 'from-violet-500 to-pink-500';
+  const isDark    = theme?.isDark !== false;
 
-  // ── Mini status bar widths ────────────────────────────────────────────────
-  const paidW    = totalEntries > 0 ? (paidList.length    / totalEntries) * 100 : 0;
-  const pendingW = totalEntries > 0 ? (pendingList.length / totalEntries) * 100 : 0;
-  const overdueW = totalEntries > 0 ? (overdueList.length / totalEntries) * 100 : 0;
+  const cardBase = isDark
+    ? 'relative overflow-hidden rounded-2xl p-4 border border-white/[0.08] bg-white/[0.04]'
+    : 'relative overflow-hidden rounded-2xl p-4 border border-black/[0.06] bg-white shadow-sm';
 
-  const hasFiltered = filterDescription && filterDescription !== 'All expenses';
+  const labelCls  = isDark ? 'text-white/40 text-[10px] font-semibold uppercase tracking-widest' : 'text-black/40 text-[10px] font-semibold uppercase tracking-widest';
+  const valueCls  = isDark ? 'text-white font-bold' : 'text-gray-900 font-bold';
+  const subCls    = isDark ? 'text-white/40 text-[10px]' : 'text-black/40 text-[10px]';
+  const trackCls  = isDark ? 'h-0.5 rounded-full bg-white/10 overflow-hidden mt-3' : 'h-0.5 rounded-full bg-black/10 overflow-hidden mt-3';
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
 
-      {/* ── Card 1: Total Paid ─────────────────────────────────────────────── */}
-    <div className={`relative overflow-hidden bg-white/70 dark:bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-slate-300 dark:border-white/20 border-l-4 ${ACCENT.borderL}`}>
-      {/* Faint background glow */}
-      <div className={`absolute -top-6 -right-6 w-24 h-24 ${ACCENT.glow} rounded-full blur-2xl pointer-events-none`} />
+      {/* ── Card 1: Total paid — headline ──────────────────────────────────── */}
+      <div className={cardBase}>
+        {/* Glow */}
+        <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full pointer-events-none opacity-40"
+          style={{ background: 'radial-gradient(circle,' + primary + '33 0%,transparent 70%)' }} />
 
-      <div className="flex items-start justify-between mb-3">
-        <div>
-          <p className="text-purple-700 dark:text-purple-300 text-xs font-medium uppercase tracking-wide mb-1">
-            Total {type} (Paid)
-          </p>
-          <p className="text-2xl font-bold text-slate-800 dark:text-white leading-none">
-            ${totalAmount.toFixed(2)}
-          </p>
-        </div>
-        <div className={`${ACCENT.iconBg} p-2 rounded-lg`}>
-          <TrendingUp className={`w-5 h-5 ${ACCENT.iconText}`} />
-        </div>
-      </div>
+        <p className={labelCls + ' mb-2'}>{type} · Paid</p>
 
-      {/* Paid count */}
-      <p className="text-purple-700 dark:text-purple-300 text-xs mt-2">
-        <span className={`${ACCENT.iconText} font-semibold`}>{paidList.length}</span> paid
-        {' · '}
-        <span className="text-slate-800 dark:text-white font-semibold">{paidPct}%</span> of all entries
-      </p>
+        <p className={valueCls + ' leading-none mb-1'} style={{ fontSize: 'clamp(1.5rem,3vw,2.2rem)' }}>
+          {fmtK(totalAmount)}
+        </p>
 
-      {/* Status bar */}
-      <div className="mt-3 flex h-1.5 rounded-full overflow-hidden bg-slate-200 dark:bg-white/10 gap-px">
-        {paidW    > 0 && <div className="bg-green-400  rounded-l-full" style={{ width: `${paidW}%` }} />}
-        {pendingW > 0 && <div className="bg-orange-400"                style={{ width: `${pendingW}%` }} />}
-        {overdueW > 0 && <div className="bg-red-400    rounded-r-full" style={{ width: `${overdueW}%` }} />}
-      </div>
-    </div>
-
-      {/* ── Card 2: Pending & Overdue ──────────────────────────────────────── */}
-    <div className="relative overflow-hidden bg-white/70 dark:bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-slate-300 dark:border-white/20 border-l-4 border-l-orange-400">
-      <div className="absolute -top-6 -right-6 w-24 h-24 bg-orange-500/10 rounded-full blur-2xl pointer-events-none" />
-
-      <div className="flex items-start justify-between mb-3">
-        <div>
-          <p className="text-purple-700 dark:text-purple-300 text-xs font-medium uppercase tracking-wide mb-1">
-            Pending & Overdue
-          </p>
-          <p className="text-2xl font-bold text-slate-800 dark:text-white leading-none">
-            {pendingList.length + overdueList.length}
-            <span className="text-lg font-normal text-purple-500 dark:text-purple-400 ml-1">entries</span>
-          </p>
-        </div>
-        <div className="bg-orange-500/20 p-2 rounded-lg">
-          <DollarSign className="w-5 h-5 text-orange-300" />
-        </div>
-      </div>
-
-      <div className="mt-2 space-y-2">
-        {/* Pending row — only when > 0 */}
-        {pendingList.length > 0 && (
-          <div className="flex items-center justify-between bg-orange-500/10 rounded-lg px-3 py-2 border border-orange-500/20">
-            <div className="flex items-center gap-2">
-              <Clock className="w-3.5 h-3.5 text-orange-400" />
-              <span className="text-orange-600 dark:text-orange-300 text-xs font-medium">Pending</span>
-              <span className="bg-orange-500/30 text-orange-700 dark:text-orange-200 text-xs px-1.5 py-0.5 rounded-full font-bold">
-                {pendingList.length}
-              </span>
-            </div>
-            <span className="text-slate-800 dark:text-white text-sm font-bold">${pendingTotal.toFixed(2)}</span>
+        {momDiff !== null ? (
+          <div className={'flex items-center gap-1 text-xs ' + (momUp ? 'text-red-400' : 'text-emerald-400')}>
+            {momUp ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+            <span className="font-semibold">{momUp ? '+' : ''}{momDiff.toFixed(1)}%</span>
+            <span className={subCls + ' ml-0.5'}>vs last month</span>
           </div>
+        ) : (
+          <p className={subCls}>{paidList.length} entries</p>
         )}
 
-        {/* Overdue row — only when > 0 */}
-        {overdueList.length > 0 && (
-          <div className="flex items-center justify-between bg-red-500/10 rounded-lg px-3 py-2 border border-red-500/20">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
-              <span className="text-red-600 dark:text-red-300 text-xs font-medium">Overdue</span>
-              <span className="bg-red-500/30 text-red-700 dark:text-red-200 text-xs px-1.5 py-0.5 rounded-full font-bold">
-                {overdueList.length}
-              </span>
-            </div>
-            <span className="text-slate-800 dark:text-white text-sm font-bold">${overdueTotal.toFixed(2)}</span>
-          </div>
-        )}
-
-        {/* All-clear fallback when neither exists */}
-        {pendingList.length === 0 && overdueList.length === 0 && (
-          <div className="flex items-center gap-2 bg-green-500/10 rounded-lg px-3 py-2 border border-green-500/20">
-            <span className="text-green-600 dark:text-green-300 text-xs font-medium">All caught up — nothing pending or overdue</span>
-          </div>
-        )}
-      </div>
-    </div>
-
-      {/* ── Card 3: Filtered Total ─────────────────────────────────────────── */}
-      <div className="relative overflow-hidden bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20 border-l-4" style={{ borderLeftColor: accent }}>
-        <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full blur-2xl pointer-events-none" style={{ background: `${accent}1a` }} />
-
-        <div className="flex items-start justify-between mb-3">
-          <div>
-            <p className="text-purple-300 text-xs font-medium uppercase tracking-wide mb-1">
-              {hasFiltered ? 'Filtered Total (Paid)' : 'All Entries'}
-            </p>
-            <p className="text-3xl font-bold text-white leading-none">
-              {hasFiltered ? `$${filteredTotal.toFixed(2)}` : totalEntries}
-              {!hasFiltered && (
-                <span className="text-lg font-normal text-purple-400 ml-1">entries</span>
-              )}
-            </p>
-          </div>
-          <div className="p-2 rounded-lg" style={{ background: `${accent}33` }}>
-            <Filter className="w-5 h-5" style={{ color: accent }} />
-          </div>
+        <div className={trackCls}>
+          <div className={'h-full rounded-full bg-gradient-to-r ' + gradient + ' transition-all duration-700'}
+            style={{ width: paidPct + '%' }} />
         </div>
+        <p className={subCls + ' mt-1'}>{paidPct}% of {totalEntries}</p>
+      </div>
 
-        {hasFiltered ? (
+      {/* ── Card 2: Action needed / All clear ──────────────────────────────── */}
+      <div className={cardBase} style={{
+        background: hasAction
+          ? isDark ? 'rgba(239,68,68,0.07)' : 'rgba(239,68,68,0.04)'
+          : isDark ? 'rgba(34,197,94,0.07)'  : 'rgba(34,197,94,0.04)',
+        borderColor: hasAction
+          ? isDark ? 'rgba(239,68,68,0.20)' : 'rgba(239,68,68,0.15)'
+          : isDark ? 'rgba(34,197,94,0.20)' : 'rgba(34,197,94,0.15)',
+      }}>
+        <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full pointer-events-none opacity-40"
+          style={{ background: hasAction
+            ? 'radial-gradient(circle,rgba(239,68,68,0.25) 0%,transparent 70%)'
+            : 'radial-gradient(circle,rgba(34,197,94,0.25) 0%,transparent 70%)' }} />
+
+        <p className={(hasAction ? 'text-orange-400' : 'text-emerald-400') + ' text-[10px] font-semibold uppercase tracking-widest mb-2'}>
+          {hasAction ? 'Needs Attention' : 'All Clear'}
+        </p>
+
+        {hasAction ? (
           <>
-            <p className="text-purple-400 text-xs mt-2 leading-relaxed">
-              <span className="text-purple-200 font-medium">Showing: </span>
-              {filterDescription}
+            <p className={valueCls + ' leading-none mb-2'} style={{ fontSize: 'clamp(1.5rem,3vw,2.2rem)' }}>
+              {fmtK(pendingAmt + overdueAmt)}
             </p>
-            {/* Filtered vs total bar */}
-            <div className="mt-3">
-              <div className="flex justify-between text-xs text-purple-400 mb-1">
-                <span>Filtered</span>
-                <span>{totalAmount > 0 ? Math.round((filteredTotal / totalAmount) * 100) : 0}% of total</span>
-              </div>
-              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{ width: `${totalAmount > 0 ? Math.min((filteredTotal / totalAmount) * 100, 100) : 0}%`, backgroundImage: `linear-gradient(to right, ${accent}, ${accent2})` }}
-                />
-              </div>
+            <div className="space-y-1">
+              {pendingList.length > 0 && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-3 h-3 text-orange-400 shrink-0" />
+                    <span className={'text-orange-400 text-xs'}>{pendingList.length} pending</span>
+                  </div>
+                  <span className={valueCls + ' text-xs'}>{fmt(pendingAmt)}</span>
+                </div>
+              )}
+              {overdueList.length > 0 && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <AlertTriangle className="w-3 h-3 text-red-400 shrink-0" />
+                    <span className={'text-red-400 text-xs'}>{overdueList.length} overdue</span>
+                  </div>
+                  <span className={valueCls + ' text-xs'}>{fmt(overdueAmt)}</span>
+                </div>
+              )}
             </div>
           </>
         ) : (
-          <div className="mt-2 space-y-1">
-            <div className="flex justify-between text-xs">
-              <span className="text-green-400">Paid</span>
-              <span className="text-white font-semibold">{paidList.length}</span>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-orange-400">Pending</span>
-              <span className="text-white font-semibold">{pendingList.length}</span>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-red-400">Overdue</span>
-              <span className="text-white font-semibold">{overdueList.length}</span>
+          <div className="flex items-end gap-3">
+            <p className="text-emerald-400 font-bold leading-none" style={{ fontSize: 'clamp(1.5rem,3vw,2.2rem)' }}>
+              {paidList.length}
+            </p>
+            <div className="mb-1">
+              <CheckCircle className="w-4 h-4 text-emerald-400" />
             </div>
           </div>
+        )}
+
+        {!hasAction && <p className="text-emerald-400/60 text-xs mt-1">all entries paid</p>}
+      </div>
+
+      {/* ── Card 3: Avg per entry OR filtered result ────────────────────────── */}
+      <div className={cardBase}>
+        <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full pointer-events-none opacity-30"
+          style={{ background: 'radial-gradient(circle,rgba(6,182,212,0.3) 0%,transparent 70%)' }} />
+
+        {filterDescription && filterDescription !== 'All expenses' ? (
+          <>
+            <p className={(isDark ? 'text-cyan-400/70' : 'text-cyan-600/70') + ' text-[10px] font-semibold uppercase tracking-widest mb-2'}>Filtered</p>
+            <p className={valueCls + ' leading-none mb-1'} style={{ fontSize: 'clamp(1.5rem,3vw,2.2rem)' }}>
+              {fmtK(filteredTotal)}
+            </p>
+            <p className={subCls + ' truncate mb-2'}>{filterDescription}</p>
+            <div className={trackCls}>
+              <div className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-indigo-500 transition-all duration-700"
+                style={{ width: (totalAmount > 0 ? Math.min((filteredTotal / totalAmount) * 100, 100) : 0) + '%' }} />
+            </div>
+            <p className={subCls + ' mt-1'}>
+              {totalAmount > 0 ? Math.round((filteredTotal / totalAmount) * 100) : 0}% of total
+            </p>
+          </>
+        ) : (
+          <>
+            <p className={labelCls + ' mb-2'}>Avg per Entry</p>
+            <p className={valueCls + ' leading-none mb-1'} style={{ fontSize: 'clamp(1.5rem,3vw,2.2rem)' }}>
+              {fmtK(avgPerEntry)}
+            </p>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <span className={(isDark ? 'text-emerald-400' : 'text-emerald-600') + ' text-[10px] font-semibold'}>{paidList.length} paid</span>
+              {pendingList.length > 0 && (
+                <span className={(isDark ? 'text-orange-400' : 'text-orange-500') + ' text-[10px] font-semibold'}>{pendingList.length} pending</span>
+              )}
+              {overdueList.length > 0 && (
+                <span className={(isDark ? 'text-red-400' : 'text-red-500') + ' text-[10px] font-semibold'}>{overdueList.length} overdue</span>
+              )}
+            </div>
+          </>
         )}
       </div>
 

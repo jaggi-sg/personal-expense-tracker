@@ -1,173 +1,197 @@
-/* src/theme.css — import in main.jsx or index.css */
+/* src/theme.css */
 
-/* ── Dark (default) ────────────────────────────────────────────────────────── */
+/* ── CSS Variables defaults (violet theme) ───────────────────────────────────── */
+:root {
+  --theme-primary:        #7c3aed;
+  --theme-secondary:      #ec4899;
+  --theme-accent:         #06b6d4;
+  --theme-ring:           #7c3aed;
+  --theme-bg-mid:         #1e1b4b;
+  --theme-bg-light:       #ddd6fe;
+  --theme-primary-rgb:    124,58,237;
+  --theme-secondary-rgb:  236,72,153;
+  --theme-bg-mid-rgb:     30,27,75;
+  --theme-light-text:     #1a0030;
+  --theme-light-subtext:  #4a0090;
+  --theme-light-border:   #ddd6fe;
+  --theme-light-card:     #ffffff;
+  --theme-bg-light-rgb:   221,214,254;
+}
+
+/* ── Dark mode ───────────────────────────────────────────────────────────────── */
 :root, :root.dark { color-scheme: dark; }
 
-/* ── Light mode overrides ───────────────────────────────────────────────────── */
+/* ── Light mode base ─────────────────────────────────────────────────────────── */
+:root.light { color-scheme: light; }
 
-/* Background */
-:root.light body,
-:root.light #root {
-  background: linear-gradient(135deg, #f1f5f9 0%, #ede9fe 50%, #ddd6fe 100%);
-  min-height: 100vh;
-  color-scheme: light;
-}
+/* .light-mode-text * beats every Tailwind text-* utility (single class specificity) */
+/* This is the only reliable way to override text-white on light backgrounds */
+.light-mode-text *                  { color: #1e1b2e; }
+.light-mode-text .text-white        { color: #1e1b2e !important; }
+.light-mode-text .text-white\/90,
+.light-mode-text .text-white\/80,
+.light-mode-text .text-white\/70    { color: #2d2b3d !important; }
+.light-mode-text .text-white\/60    { color: #44405a !important; }
+.light-mode-text .text-white\/50    { color: #5a5770 !important; }
+.light-mode-text .text-white\/40    { color: #7c7a94 !important; }
+.light-mode-text .text-white\/30    { color: #a09eb8 !important; }
+.light-mode-text .text-white\/20    { color: #c4c2d8 !important; }
 
-/* Surfaces */
-:root.light .bg-white\/10  { background-color: rgba(255,255,255,0.80) !important; }
-:root.light .bg-white\/15  { background-color: rgba(255,255,255,0.85) !important; }
-:root.light .bg-white\/20  { background-color: rgba(255,255,255,0.92) !important; }
-:root.light .bg-white\/5   { background-color: rgba(255,255,255,0.65) !important; }
-:root.light .bg-white\/8   { background-color: rgba(255,255,255,0.70) !important; }
-:root.light .bg-white\/\[0\.03\] { background-color: rgba(109,40,217,0.03) !important; }
+/* Theme accent text — use theme primary */
+.light-mode-text .text-purple-300,
+.light-mode-text .text-purple-400,
+.light-mode-text .text-violet-300,
+.light-mode-text .text-violet-400   { color: var(--theme-primary) !important; }
+.light-mode-text .text-purple-500,
+.light-mode-text .text-purple-600   { color: rgba(var(--theme-primary-rgb),0.65) !important; }
+.light-mode-text .text-purple-100,
+.light-mode-text .text-purple-200   { color: rgba(var(--theme-primary-rgb),0.85) !important; }
 
-/* Slate backgrounds (table headers, dropdowns, sticky rows) */
-:root.light .bg-slate-900      { background-color: #f8fafc !important; }
-:root.light .bg-slate-900\/90  { background-color: rgba(248,250,252,0.92) !important; }
-:root.light .bg-slate-900\/95  { background-color: rgba(248,250,252,0.96) !important; }
-:root.light .bg-slate-800\/60  { background-color: rgba(241,245,249,0.90) !important; }
+/* Status colours — always readable */
+.light-mode-text .text-green-400,
+.light-mode-text .text-green-300    { color: #15803d !important; }
+.light-mode-text .text-emerald-400,
+.light-mode-text .text-emerald-300  { color: #047857 !important; }
+.light-mode-text .text-orange-400,
+.light-mode-text .text-orange-300   { color: #c2410c !important; }
+.light-mode-text .text-red-400,
+.light-mode-text .text-red-300      { color: #b91c1c !important; }
+.light-mode-text .text-amber-400,
+.light-mode-text .text-amber-300    { color: #b45309 !important; }
+.light-mode-text .text-blue-400,
+.light-mode-text .text-blue-300     { color: #1d4ed8 !important; }
+.light-mode-text .text-cyan-400,
+.light-mode-text .text-cyan-300     { color: #0e7490 !important; }
+.light-mode-text .text-yellow-400   { color: #a16207 !important; }
+.light-mode-text .text-pink-400     { color: #be185d !important; }
+.light-mode-text .text-slate-300    { color: #475569 !important; }
+.light-mode-text .text-slate-400    { color: #64748b !important; }
+/* White text in buttons/badges that need to stay white */
+.light-mode-text .bg-green-500,
+.light-mode-text .bg-red-500,
+.light-mode-text .bg-orange-500,
+.light-mode-text .bg-blue-500,
+.light-mode-text .bg-emerald-500,
+.light-mode-text .bg-violet-600,
+.light-mode-text .bg-violet-500     { color: #ffffff !important; }
 
-/* Purple backgrounds */
-:root.light .bg-purple-900\/20 { background-color: rgba(237,233,254,0.50) !important; }
-:root.light .bg-purple-900\/30 { background-color: rgba(237,233,254,0.60) !important; }
-
-/* Status badge backgrounds — keep vivid, just slightly softer */
-:root.light .bg-green-500  { background-color: #16a34a !important; }
-:root.light .bg-orange-500 { background-color: #ea580c !important; }
-:root.light .bg-red-500    { background-color: #dc2626 !important; }
-:root.light .bg-slate-500  { background-color: #64748b !important; }
-
-/* Borders */
-:root.light .border-white\/10  { border-color: rgba(109,40,217,0.10) !important; }
-:root.light .border-white\/15  { border-color: rgba(109,40,217,0.15) !important; }
-:root.light .border-white\/20  { border-color: rgba(109,40,217,0.20) !important; }
-:root.light .border-white\/25  { border-color: rgba(109,40,217,0.25) !important; }
-:root.light .border-white\/30  { border-color: rgba(109,40,217,0.30) !important; }
-
-/* ── Text colors ─────────────────────────────────────────────────────────────── */
-:root.light .text-white        { color: #1e1b4b !important; }
-
-/* Purple scale → dark violet equivalents */
-:root.light .text-purple-100   { color: #4c1d95 !important; }
-:root.light .text-purple-200   { color: #5b21b6 !important; }
-:root.light .text-purple-300   { color: #6d28d9 !important; }
-:root.light .text-purple-400   { color: #7c3aed !important; }
-:root.light .text-purple-500   { color: #8b5cf6 !important; }
-:root.light .text-purple-600   { color: #7c3aed !important; }
-
-/* Violet */
-:root.light .text-violet-300   { color: #5b21b6 !important; }
-:root.light .text-violet-400   { color: #6d28d9 !important; }
-
-/* Status / semantic colours — keep readable on light bg */
-:root.light .text-green-300    { color: #15803d !important; }
-:root.light .text-green-400    { color: #16a34a !important; }
-:root.light .text-orange-300   { color: #c2410c !important; }
-:root.light .text-orange-400   { color: #ea580c !important; }
-:root.light .text-red-300      { color: #b91c1c !important; }
-:root.light .text-red-400      { color: #dc2626 !important; }
-:root.light .text-blue-300     { color: #1d4ed8 !important; }
-:root.light .text-blue-400     { color: #2563eb !important; }
-:root.light .text-cyan-300     { color: #0e7490 !important; }
-:root.light .text-cyan-400     { color: #0891b2 !important; }
-:root.light .text-yellow-400   { color: #b45309 !important; }
-:root.light .text-amber-300    { color: #b45309 !important; }
-:root.light .text-amber-400    { color: #d97706 !important; }
-:root.light .text-pink-400     { color: #db2777 !important; }
-:root.light .text-pink-500     { color: #ec4899 !important; }
-:root.light .text-slate-300    { color: #475569 !important; }
-:root.light .text-slate-400    { color: #64748b !important; }
-
-/* ── Inputs & selects ─────────────────────────────────────────────────────────── */
-:root.light select,
-:root.light input[type="text"],
-:root.light input[type="date"],
-:root.light input[type="number"],
-:root.light input[type="search"] {
-  background-color: rgba(255,255,255,0.95) !important;
-  color: #1e1b4b !important;
-  border-color: rgba(109,40,217,0.25) !important;
-}
-:root.light option,
-:root.light optgroup {
-  background-color: #ffffff;
-  color: #1e1b4b;
-}
-:root.light ::placeholder { color: #8b5cf6 !important; opacity: 0.7; }
-
-/* ── Tab navigation ───────────────────────────────────────────────────────────── */
-:root.light .border-white\/10 { border-color: rgba(109,40,217,0.12) !important; }
-
-/* ── Backdrop blur surfaces (cards, modals) ───────────────────────────────────── */
-:root.light .backdrop-blur-lg  { backdrop-filter: blur(12px); }
-:root.light .backdrop-blur-sm  { backdrop-filter: blur(6px); }
-
-/* ── Hover states ─────────────────────────────────────────────────────────────── */
-:root.light .hover\:bg-white\/5:hover  { background-color: rgba(109,40,217,0.06) !important; }
-:root.light .hover\:bg-white\/8:hover  { background-color: rgba(109,40,217,0.08) !important; }
-:root.light .hover\:bg-white\/10:hover { background-color: rgba(109,40,217,0.10) !important; }
-:root.light .hover\:bg-white\/15:hover { background-color: rgba(109,40,217,0.12) !important; }
-:root.light .hover\:bg-white\/20:hover { background-color: rgba(109,40,217,0.15) !important; }
-
-/* ── Card / surface separation in light mode ──────────────────────────────────── */
-
-/* Outer cards */
+/* ── Light mode backgrounds / cards ─────────────────────────────────────────── */
 :root.light .bg-white\/10,
 :root.light .bg-white\/15,
-:root.light .bg-white\/20 {
+:root.light .bg-white\/20,
+:root.light .bg-white\/\[0\.04\],
+:root.light .bg-white\/\[0\.06\] {
+  background-color: rgba(255,255,255,0.95) !important;
+  border-color: rgba(var(--theme-primary-rgb),0.20) !important;
+  box-shadow: 0 1px 4px rgba(var(--theme-primary-rgb),0.10),
+              0 4px 16px rgba(var(--theme-primary-rgb),0.06) !important;
+}
+
+:root.light .bg-white\/5,
+:root.light .bg-white\/8,
+:root.light .bg-white\/\[0\.02\],
+:root.light .bg-white\/\[0\.03\] {
+  background-color: rgba(var(--theme-bg-light-rgb),0.4) !important;
+  border-color: rgba(var(--theme-primary-rgb),0.12) !important;
+}
+
+/* Slate/dark surfaces → white */
+:root.light .bg-slate-900,
+:root.light .bg-slate-900\/95,
+:root.light .bg-slate-900\/98,
+:root.light .bg-slate-900\/90,
+:root.light .bg-slate-900\/80 {
+  background-color: rgba(255,255,255,0.97) !important;
+  border-color: rgba(var(--theme-primary-rgb),0.18) !important;
+  box-shadow: 0 2px 8px rgba(var(--theme-primary-rgb),0.08) !important;
+}
+
+/* Sticky table header */
+:root.light thead tr {
+  background-color: rgba(var(--theme-bg-light-rgb),0.6) !important;
+}
+:root.light thead th {
+  color: var(--theme-light-text) !important;
+  border-color: rgba(var(--theme-primary-rgb),0.18) !important;
+}
+
+/* ── Borders ─────────────────────────────────────────────────────────────────── */
+:root.light .border-white\/\[0\.06\],
+:root.light .border-white\/\[0\.08\],
+:root.light .border-white\/10  { border-color: rgba(var(--theme-primary-rgb),0.18) !important; }
+:root.light .border-white\/15  { border-color: rgba(var(--theme-primary-rgb),0.22) !important; }
+:root.light .border-white\/20  { border-color: rgba(var(--theme-primary-rgb),0.28) !important; }
+:root.light .border-white\/25  { border-color: rgba(var(--theme-primary-rgb),0.35) !important; }
+
+/* ── Theme accent fills ───────────────────────────────────────────────────────── */
+:root.light .bg-violet-500\/10,
+:root.light .bg-violet-500\/20,
+:root.light .bg-purple-500\/10,
+:root.light .bg-purple-500\/15,
+:root.light .bg-purple-500\/20,
+:root.light .bg-purple-900\/20,
+:root.light .bg-purple-900\/30 {
+  background-color: rgba(var(--theme-bg-light-rgb),0.5) !important;
+  border-color: rgba(var(--theme-primary-rgb),0.22) !important;
+}
+
+/* ── Status badge backgrounds ────────────────────────────────────────────────── */
+:root.light .bg-green-500\/10,
+:root.light .bg-green-500\/15,
+:root.light .bg-green-500\/20  { background-color: rgba(22,163,74,0.12) !important; border-color: rgba(22,163,74,0.25) !important; }
+:root.light .bg-orange-500\/10,
+:root.light .bg-orange-500\/15 { background-color: rgba(234,88,12,0.10) !important; border-color: rgba(234,88,12,0.22) !important; }
+:root.light .bg-red-500\/10,
+:root.light .bg-red-500\/15    { background-color: rgba(220,38,38,0.08) !important; border-color: rgba(220,38,38,0.20) !important; }
+:root.light .bg-amber-500\/10  { background-color: rgba(245,158,11,0.10) !important; border-color: rgba(245,158,11,0.22) !important; }
+:root.light .bg-blue-500\/10,
+:root.light .bg-blue-500\/15,
+:root.light .bg-blue-500\/25   { background-color: rgba(59,130,246,0.10) !important; border-color: rgba(59,130,246,0.22) !important; }
+:root.light .bg-emerald-500\/10{ background-color: rgba(16,185,129,0.10) !important; }
+
+/* Solid status buttons */
+:root.light .bg-green-500  { background-color: #16a34a !important; color: #fff !important; }
+:root.light .bg-red-500    { background-color: #dc2626 !important; color: #fff !important; }
+:root.light .bg-orange-500 { background-color: #ea580c !important; color: #fff !important; }
+:root.light .bg-blue-500   { background-color: #2563eb !important; color: #fff !important; }
+:root.light .bg-emerald-500{ background-color: #059669 !important; color: #fff !important; }
+
+/* ── Inputs ──────────────────────────────────────────────────────────────────── */
+:root.light input,
+:root.light select,
+:root.light textarea {
   background-color: #ffffff !important;
-  border-color: rgba(109,40,217,0.22) !important;
-  box-shadow:
-    0 0 0 1px rgba(109,40,217,0.10),
-    0 4px 20px -4px rgba(109,40,217,0.18),
-    0 1px 4px rgba(109,40,217,0.08) !important;
+  color: #0f172a !important;
+  border-color: rgba(var(--theme-primary-rgb),0.28) !important;
+}
+:root.light input::placeholder,
+:root.light textarea::placeholder { color: #94a3b8 !important; }
+:root.light input:focus,
+:root.light select:focus {
+  border-color: var(--theme-primary) !important;
+  box-shadow: 0 0 0 3px rgba(var(--theme-primary-rgb),0.15) !important;
+  outline: none !important;
+}
+:root.light option { background: #ffffff; color: #0f172a; }
+
+/* ── Hover ────────────────────────────────────────────────────────────────────── */
+:root.light .hover\:bg-white\/5:hover,
+:root.light .hover\:bg-white\/8:hover,
+:root.light .hover\:bg-white\/10:hover,
+:root.light .hover\:bg-white\/\[0\.05\]:hover,
+:root.light .hover\:bg-white\/\[0\.12\]:hover {
+  background-color: rgba(var(--theme-primary-rgb),0.07) !important;
+}
+:root.light .hover\:bg-white\/15:hover,
+:root.light .hover\:bg-white\/20:hover {
+  background-color: rgba(var(--theme-primary-rgb),0.12) !important;
 }
 
-/* Inner nested cards — violet tinted so they clearly sit inside the outer card */
-:root.light .bg-white\/5  {
-  background-color: rgba(237,233,254,0.60) !important;
-  border: 1px solid rgba(109,40,217,0.16) !important;
-  box-shadow: none !important;
-}
-:root.light .bg-white\/8  { background-color: rgba(237,233,254,0.45) !important; }
-:root.light .bg-white\/\[0\.03\] { background-color: rgba(237,233,254,0.25) !important; }
+/* ── Scrollbar ───────────────────────────────────────────────────────────────── */
+:root.light ::-webkit-scrollbar-track { background: rgba(var(--theme-primary-rgb),0.04); }
+:root.light ::-webkit-scrollbar-thumb { background: rgba(var(--theme-primary-rgb),0.22); border-radius: 4px; }
+:root.light ::-webkit-scrollbar-thumb:hover { background: rgba(var(--theme-primary-rgb),0.38); }
 
-/* Selection highlight */
-:root.light .bg-blue-500\/10 { background-color: rgba(59,130,246,0.08) !important; }
-:root.light .bg-blue-500\/15 { background-color: rgba(59,130,246,0.12) !important; }
-
-/* ── Status-tinted sub-rows (SummaryCards pending/overdue rows) ───────────────── */
-:root.light .bg-orange-500\/10 { background-color: rgba(251,146,60,0.12) !important; border: 1px solid rgba(234,88,12,0.20) !important; }
-:root.light .bg-red-500\/10    { background-color: rgba(239,68,68,0.10) !important;  border: 1px solid rgba(220,38,38,0.18) !important; }
-:root.light .bg-green-500\/10  { background-color: rgba(34,197,94,0.10) !important;  border: 1px solid rgba(22,163,74,0.18)  !important; }
-:root.light .bg-violet-500\/10 { background-color: rgba(139,92,246,0.10) !important; border: 1px solid rgba(109,40,217,0.18) !important; }
-:root.light .bg-amber-500\/8   { background-color: rgba(245,158,11,0.10) !important; border: 1px solid rgba(217,119,6,0.18)  !important; }
-:root.light .bg-slate-900 {
-  background-color: #ffffff !important;
-}
-:root.light .bg-slate-900.border,
-:root.light .bg-slate-900.rounded-xl {
-  border-color: rgba(109,40,217,0.22) !important;
-  box-shadow: 0 8px 24px -4px rgba(109,40,217,0.18) !important;
-}
-
-/* ── Month-over-Month table (.mom-table) ─────────────────────────────────────── */
-:root.light .mom-table thead tr th {
-  background-color: #2e1065 !important;
-  color: #e9d5ff !important;
-}
-:root.light .mom-table tbody td.sticky {
-  background-color: #f5f3ff !important;
-  color: #1e1b4b !important;
-  border-right: 1px solid rgba(109,40,217,0.15);
-}
-:root.light .mom-table tbody tr:hover td.sticky {
-  background-color: #ede9fe !important;
-}
-:root.light .mom-table tbody tr:last-child td {
-  background-color: rgba(237,233,254,0.70) !important;
-  font-weight: 600;
-}
-:root.light .mom-table tbody tr {
-  border-bottom: 1px solid rgba(109,40,217,0.08) !important;
-}
+/* ── Table rows ──────────────────────────────────────────────────────────────── */
+:root.light tbody tr { border-color: rgba(var(--theme-primary-rgb),0.09) !important; }
+:root.light tbody tr:hover td { background-color: rgba(var(--theme-primary-rgb),0.04) !important; }

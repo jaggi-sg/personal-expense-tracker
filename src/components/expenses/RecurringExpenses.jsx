@@ -13,7 +13,6 @@ import SummaryCards from '../analytics/SummaryCards';
 import AddExpenseSection from '../forms/AddExpenseSection';
 
 const RecurringExpenses = ({
-  chartTheme,
   expenses,
   categories,
   formData,
@@ -56,6 +55,8 @@ const RecurringExpenses = ({
   onBulkClone,
   onSkipMonth,
   onStatusChange,
+  onOpenBulkAdd,
+  onScanAddExpense,
 }) => {
   const [searchCriteria, setSearchCriteria] = useState({});
   const [expandedTransactions, setExpandedTransactions] = useState({});
@@ -83,7 +84,7 @@ const RecurringExpenses = ({
     ? advFiltered.filter(e => e.trip === selectedTrip)
     : advFiltered;
 
-  const itemsPerPage  = 25;
+  const itemsPerPage  = 10;
   const totalPages    = Math.ceil(finalFiltered.length / itemsPerPage);
   const startIndex    = (currentPage - 1) * itemsPerPage;
   const endIndex      = Math.min(startIndex + itemsPerPage, finalFiltered.length);
@@ -133,7 +134,6 @@ const RecurringExpenses = ({
         filterDescription={getFilterDescription(filterMonth, filterYear, filterCategory)}
         type="Recurring"
         expenses={expenses}
-        chartTheme={chartTheme}
       />
 
       <AddExpenseSection
@@ -170,11 +170,13 @@ const RecurringExpenses = ({
         onToggleFavorite={onToggleFavorite}
         onSaveTemplate={onSaveTemplate}
         onClearForm={onClearForm}
+        onScanAddExpense={onScanAddExpense}
+        onOpenBulkAdd={onOpenBulkAdd}
         expenseType="Recurring"
       />
 
-      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 md:p-5 border border-white/20">
-        <h2 className="text-xl font-bold text-white mb-3">Recurring Expense List</h2>
+      <div className="bg-white/[0.06] backdrop-blur-lg rounded-xl border border-white/[0.08]">
+        <h2 className="text-2xl font-bold text-white mb-4">Recurring Expense List</h2>
 
         <ExpenseListControls
           dateFrom={dateFrom}             setDateFrom={setDateFrom}

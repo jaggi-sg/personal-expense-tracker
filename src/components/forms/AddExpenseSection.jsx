@@ -1,7 +1,7 @@
 // src/components/AddExpenseSection.jsx
 
 import React, { useState } from 'react';
-import { Plus, ChevronDown, ChevronUp, Save, FileText, X } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp, Save, FileText, X, Repeat } from 'lucide-react';
 import AddExpenseForm from './AddExpenseForm';
 import TemplateQuickLoad from './TemplateQuickLoad';
 import ReceiptScanner from '../scanner/ReceiptScanner';
@@ -45,6 +45,7 @@ const AddExpenseSection = ({
   // Clear form
   onClearForm,
   onScanAddExpense,
+  onOpenBulkAdd,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -58,7 +59,7 @@ const AddExpenseSection = ({
   };
 
   return (
-    <div className="mb-5">
+    <div className="mb-6">
       {/* Toggle Button */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
@@ -107,6 +108,16 @@ const AddExpenseSection = ({
                 }}
                 onAddExpense={onScanAddExpense}
               />
+              {/* Bulk Add — both tab types */}
+              {onOpenBulkAdd && (
+                <button
+                  onClick={onOpenBulkAdd}
+                  className="bg-violet-500/20 hover:bg-violet-500/30 text-violet-300 border border-violet-500/40 hover:border-violet-400 rounded-lg px-4 py-2 flex items-center gap-2 text-sm font-medium transition-all"
+                >
+                  <Repeat className="w-4 h-4" />
+                  Bulk Add
+                </button>
+              )}
               {/* Clear Form Button */}
               {hasFormData && (
                 <button

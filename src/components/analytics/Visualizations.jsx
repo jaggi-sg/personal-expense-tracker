@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Chart, registerables } from 'chart.js';
 import { TrendingUp, PieChart, BarChart3, Activity, Calendar } from 'lucide-react';
+import { useChartTheme } from '../../hooks/useChartTheme';
 
 Chart.register(...registerables);
 
@@ -175,12 +176,12 @@ const SpendHeatmap = ({ expenses, filterYear }) => {
 };
 
 // ── Main component ────────────────────────────────────────────────────────────
-const Visualizations = ({ expenses, filterYear, setFilterYear, availableYears, onCategoryClick, chartTheme }) => {
-  // Fallback palette if no theme passed
-  const palette  = chartTheme?.pie || PALETTE;
-  const recColors    = chartTheme?.recurring    || { border: '#f472b6', bg: 'rgba(244,114,182,0.08)', bar: 'rgba(124,58,237,0.75)' };
-  const nonRecColors = chartTheme?.nonRecurring || { border: '#34d399', bg: 'rgba(52,211,153,0.08)',  bar: 'rgba(59,130,246,0.75)' };
-  const primaryColor = chartTheme?.primary || '#7c3aed';
+const Visualizations = ({ expenses, filterYear, setFilterYear, availableYears, onCategoryClick }) => {
+  const { theme: t } = useChartTheme();
+  const palette      = t?.pie || PALETTE;
+  const recColors    = t?.recurring    || { border: '#f472b6', bg: 'rgba(244,114,182,0.08)', bar: 'rgba(124,58,237,0.75)' };
+  const nonRecColors = t?.nonRecurring || { border: '#34d399', bg: 'rgba(52,211,153,0.08)',  bar: 'rgba(59,130,246,0.75)' };
+  const primaryColor = t?.primary || '#7c3aed';
   const mixedRef          = useRef(null);
   const cumulativeRef     = useRef(null);
   const recurDonutRef     = useRef(null);
@@ -369,7 +370,7 @@ const Visualizations = ({ expenses, filterYear, setFilterYear, availableYears, o
         if (r.current) { r.current.destroy(); r.current = null; }
       });
     };
-  }, [expenses, filterYear, chartTheme]);
+  }, [expenses, filterYear, t]);
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (

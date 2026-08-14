@@ -14,7 +14,6 @@ import AddExpenseSection from '../forms/AddExpenseSection';
 import SubTransactionManager from './SubTransactionManager';
 
 const NonRecurringExpenses = ({
-  chartTheme,
   expenses,
   nonRecurringCategories,
   formData,
@@ -64,6 +63,7 @@ const NonRecurringExpenses = ({
   onSkipMonth,
   onStatusChange,
   onScanAddExpense,
+  onOpenBulkAdd,
 }) => {
   const [searchCriteria, setSearchCriteria]       = useState({});
   const [selectedTrip,   setSelectedTrip]         = useState('');
@@ -88,7 +88,7 @@ const NonRecurringExpenses = ({
     ? advFiltered.filter(e => e.trip === selectedTrip)
     : advFiltered;
 
-  const itemsPerPage = 25;
+  const itemsPerPage = 10;
   const totalPages   = Math.ceil(finalFiltered.length / itemsPerPage);
   const startIndex   = (currentPage - 1) * itemsPerPage;
   const endIndex     = Math.min(startIndex + itemsPerPage, finalFiltered.length);
@@ -137,7 +137,6 @@ const NonRecurringExpenses = ({
         filterDescription={getFilterDescription(filterMonth, filterYear, filterCategory)}
         type="Non-Recurring"
         expenses={expenses}
-        chartTheme={chartTheme}
       />
 
       <AddExpenseSection
@@ -186,11 +185,12 @@ const NonRecurringExpenses = ({
         onSaveTemplate={onSaveTemplate}
         onClearForm={onClearForm}
         onScanAddExpense={onScanAddExpense}
+        onOpenBulkAdd={onOpenBulkAdd}
         expenseType="Non-Recurring"
       />
 
-      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 md:p-5 border border-white/20">
-        <h2 className="text-xl font-bold text-white mb-3">Non-Recurring Expense List</h2>
+      <div className="bg-white/[0.06] backdrop-blur-lg rounded-xl border border-white/[0.08]">
+        <h2 className="text-2xl font-bold text-white mb-4">Non-Recurring Expense List</h2>
 
         <ExpenseListControls
           dateFrom={dateFrom}             setDateFrom={setDateFrom}
